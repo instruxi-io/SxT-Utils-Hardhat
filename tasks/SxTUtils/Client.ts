@@ -20,9 +20,19 @@ class ClientManager {
     for (let table of this.tablesManager.tables) {
       console.log(`DDL Manager (schema=${this.tablesManager.schema.toUpperCase()}, table=${table.tableName}, action=${action.toUpperCase()})`);
       const sql: RenderSQLResult = await this.tablesManager.ddlFromTable(action, table);
-  
+      console.log('----------------------------------------')
       if (!sql.sql || !table.security?.hexEncodedPublicKey || !table.biscuits?.ddl) {
-        results.push({ success: false, message: 'Condition not met', sql: '', records: null });
+        let message = 'Error: ';
+        if (!sql.sql) {
+          message += 'No SQL statement. ';
+        }
+        if (!table.security?.hexEncodedPublicKey) {
+          message += 'No hex encoded public key. ';
+        }
+        if (!table.biscuits?.ddl) {
+          message += 'No DDL biscuit. ';
+        }
+        results.push({ success: false, message: message, sql: '', records: null });
         continue;
       }
   
@@ -105,6 +115,7 @@ class ClientManager {
           console.log('----------------------------------------')
           let [dmlSuccess, dmlError] = await hre.sxtSDK.DML([table.resourceId], sql.sql, [biscuit]);
           if (dmlError) {
+            console.log(dmlError)
             result = { success: false, message: `----------------------------------------\nDML Failed --> ${dmlError?.response?.data.title}\n\t${dmlError?.response?.data.detail}`, sql: sql.sql, records: null };
           } else {
             result = { success: true, message: 'Query execution was successful', sql: sql.sql, records: null };
@@ -249,7 +260,7 @@ class ClientManager {
     const biscuits: string[] = [];
   
     for (const table of this.tablesManager.tables) {
-      console.log(`Processing Custom Query (schema=${this.tablesManager.schema.toUpperCase()}, table=${table.tableName}`);
+      console.log(`Processing Custom Query (schema=${this.tablesManager.schema.toUpperCase()}, table=${table.tableName})`);
   
       if (!table.biscuits?.dql) {
         return { success: false, message: 'Biscuit not found for the table', sql: '', records: null };
@@ -258,9 +269,12 @@ class ClientManager {
       biscuits.push(table.biscuits?.dql);
       resourceIds.push(table.resourceId);
     }
-  
+    
+    if (!this.tablesManager.query) {
+      return { success: false, message: 'Query parameter not found. Be sure to use --query', sql: '', records: null };
+    }
     const sql: RenderSQLResult = await this.tablesManager.sqlQueryFromFile(this.tablesManager.schema, this.tablesManager.query);
-  
+
     if (!sql.success || !sql.sql) {
       return { success: false, message: `SQL generation failed: ${sql.message}`, sql: sql.sql || 'No SQL generated', records: null };
     }
@@ -269,6 +283,7 @@ class ClientManager {
     const [dqlSuccess, dqlError] = await hre.sxtSDK.DQL(resourceIds, sql.sql, biscuits);
   
     if (dqlError) {
+      console.log(dqlError)
       return {
         success: false,
         message: `----------------------------------------\nDQL Failed --> ${dqlError?.response?.data.title}\n\t${dqlError?.response?.data.detail}`,

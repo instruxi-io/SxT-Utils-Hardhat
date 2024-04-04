@@ -18,3 +18,4 @@ export type { CloneableERC721 } from "./CloneableERC721";
 export type { FractionalToken } from "./FractionalToken";
 export type { MeshFactory } from "./MeshFactory";
 export type { MultiTenantVaultFunctionsConsumer } from "./MultiTenantVaultFunctionsConsumer";
+export type { SimpleToDo } from "./SimpleToDo";

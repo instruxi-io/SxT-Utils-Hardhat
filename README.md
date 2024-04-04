@@ -30,6 +30,7 @@
 #
 	mv dev.env .env
 #
+#
 	PRIVATE_KEY=""
 	PUBLIC_KEY=""
 #

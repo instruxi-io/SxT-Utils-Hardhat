@@ -15,3 +15,4 @@ export { CloneableERC721__factory } from "./CloneableERC721__factory";
 export { FractionalToken__factory } from "./FractionalToken__factory";
 export { MeshFactory__factory } from "./MeshFactory__factory";
 export { MultiTenantVaultFunctionsConsumer__factory } from "./MultiTenantVaultFunctionsConsumer__factory";
+export { SimpleToDo__factory } from "./SimpleToDo__factory";

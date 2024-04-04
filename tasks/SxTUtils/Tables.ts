@@ -433,7 +433,6 @@ class TablesManager {
     }
 
     // Persist the SQL generated from the DDL, DML, and DQL operations
-    // Persist the SQL generated from the DDL, DML, and DQL operations
     async saveSQLTemplates(templateType: 'ddl' | 'dql' | 'dml', force: boolean = false): Promise<Result> {
       try {
         let generatedCount = 0;

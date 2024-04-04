@@ -1,5 +1,4 @@
 export interface EnforcerTaskArgs {
-    getInputs: any;
     accountaddress?: string;
     signedchallenge?: string;
     chainid?: string;
@@ -13,6 +12,7 @@ export interface EnforcerTaskArgs {
     tenantid?: string;
     nonce?: string;
     message?: string;
+    deployer: any;
 }
 
 export interface Result {

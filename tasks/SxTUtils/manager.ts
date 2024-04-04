@@ -1,6 +1,6 @@
 import { task, types } from "hardhat/config";
 import { HardhatRuntimeEnvironment } from 'hardhat/types';
-import { QueryTaskArgs, TaskArgs, Result, RenderSQLResult, Table, SxTResult, TablesResult } from './types';
+import { TaskArgs } from './types';
 import SchemaManager from "./Schema";
 import ClientManager from "./Client";
 import TablesManager from "./Tables";
@@ -21,7 +21,8 @@ for (const queryAction in queryActions) {
       const tableManager = new TablesManager(taskArgs);
       await tableManager.init(taskArgs);
       const clientManager = new ClientManager(tableManager)
-      await queryActions[queryAction](hre, clientManager);
+      const result = await queryActions[queryAction](hre, clientManager);
+      console.log(result.message);
   });
 }
 
@@ -48,7 +49,10 @@ for (const tableAction in tableActions) {
       const tableManager = new TablesManager(taskArgs);
       await tableManager.init(taskArgs);
       const clientManager = new ClientManager(tableManager)
-      await tableActions[tableAction](hre, clientManager);
+      const result = await tableActions[tableAction](hre, clientManager);
+      for (let i of result) {
+        console.log(i.message);
+    }
   });
 }
 
@@ -73,7 +77,8 @@ for (const stagingAction in stagingActions) {
     }
     const tableManager = new TablesManager(taskArgs);
     await tableManager.init(taskArgs);
-    await stagingActions[stagingAction](tableManager);
+    let result = await stagingActions[stagingAction](tableManager);
+    console.log(result.message);
   });
 }
 
@@ -92,20 +97,8 @@ for (const schemaAction in schemaActions) {
     .addOptionalParam("force", "Overwrite existing files", false, types.boolean)
     .addOptionalParam("format", "The format of the backup archive (zip, tar)", 'zip', types.string)
     .setAction(async (taskArgs: TaskArgs, hre: HardhatRuntimeEnvironment) => {
-      try {
-        /*
-        if (await hre.sxtSDK.isSessionExpired()) {
-          let [authSuccess, authError]: [SessionData | null, null | HttpError<any>] = await hre.sxtSDK.Authenticate();
-          if (authError) {
-            throw new Error(authError?.message);
-          }
-        }
-        */
-        let schemaActionStatus  = await schemaActions[schemaAction](hre, taskArgs);
-        console.log(schemaActionStatus.message);
-      } catch (error) {
-        throw new Error(`${(error as Error).message}`);
-      }
+      let request  = await schemaActions[schemaAction](hre, taskArgs);
+      console.log(request.message);
     });
 }
 
@@ -118,8 +111,8 @@ const sessionActions: SessionActions = {
 for (const sessionAction in sessionActions) {
   task(`sxt-utils:${sessionAction}`, `Performing session ${sessionAction}`)
   .setAction(async (taskArgs: TaskArgs, hre: HardhatRuntimeEnvironment) => {
-    let sessionActionStatus = await sessionActions[sessionAction](hre, taskArgs);
-    console.log(sessionActionStatus.message);
+    let request = await sessionActions[sessionAction](hre, taskArgs);
+    console.log(request.message);
   });
 }
 

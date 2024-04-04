@@ -126,6 +126,8 @@ export type { MeshFactory } from "./contracts/MeshFactory";
 export { MeshFactory__factory } from "./factories/contracts/MeshFactory__factory";
 export type { MultiTenantVaultFunctionsConsumer } from "./contracts/MultiTenantVaultFunctionsConsumer";
 export { MultiTenantVaultFunctionsConsumer__factory } from "./factories/contracts/MultiTenantVaultFunctionsConsumer__factory";
+export type { SimpleToDo } from "./contracts/SimpleToDo";
+export { SimpleToDo__factory } from "./factories/contracts/SimpleToDo__factory";
 export type { ERC1155Delta } from "./erc1155delta/contracts/ERC1155Delta";
 export { ERC1155Delta__factory } from "./factories/erc1155delta/contracts/ERC1155Delta__factory";
 export type { ERC1155DeltaUpgradeable } from "./erc1155delta/contracts/ERC1155DeltaUpgradeable";

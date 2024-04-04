@@ -253,6 +253,10 @@ declare module "hardhat/types/runtime" {
       signerOrOptions?: ethers.Signer | FactoryOptions
     ): Promise<Contracts.MultiTenantVaultFunctionsConsumer__factory>;
     getContractFactory(
+      name: "SimpleToDo",
+      signerOrOptions?: ethers.Signer | FactoryOptions
+    ): Promise<Contracts.SimpleToDo__factory>;
+    getContractFactory(
       name: "Initializable",
       signerOrOptions?: ethers.Signer | FactoryOptions
     ): Promise<Contracts.Initializable__factory>;
@@ -581,6 +585,11 @@ declare module "hardhat/types/runtime" {
       address: string,
       signer?: ethers.Signer
     ): Promise<Contracts.MultiTenantVaultFunctionsConsumer>;
+    getContractAt(
+      name: "SimpleToDo",
+      address: string,
+      signer?: ethers.Signer
+    ): Promise<Contracts.SimpleToDo>;
     getContractAt(
       name: "Initializable",
       address: string,
