@@ -1,6 +1,6 @@
 ## Mesh Serverless
 
-### The Mesh Serverless project provides a user-friendly framework for DApp development with the Mesh SDK. It serves as a monorepo for managing smart contracts, deploying DApp backends to Space and Time, archiving files to Storj, and setting up authorization events on the Mesh Gateway.
+> The Mesh Serverless project provides a user-friendly framework for DApp development with the Mesh SDK. If you are only using Space and Time, you can skip to the part 5 of the setup ReadMe sectioned, **SxT Utils**.
 
 ### Dependencies
 
@@ -59,9 +59,6 @@
 	ETHERSCAN_TOKEN_ARBITRUM=""
 #
 
-
-
-
 > The Mesh Indexer is monitoring Ethereum, Sepolia, Avalanche, Fuji, Polygon, Mumbai, Arbitrum, and Base and this Hardhat project is configured to accept the following RPC values. Use networks.ts to extend or customize your network scope
 
 ###
@@ -107,9 +104,11 @@
 #
 
 
-## SxT Utils (Optional) - Head over to [Space and Time](https://app.spaceandtime.ai/) to register your wallet. It's free to get started and you can use the same public key as above
+### SxT Utils (Optional) 
 
-5. Set Space and Time environment variables in .env  
+> Head over to [Space and Time](https://app.spaceandtime.ai/) to register your wallet. It's free to get started and you can use the same public key as above
+
+5. Set Space and Time environment variables in .env (PUBLIC_KEY and PRIVATE_KEY must be the keys associated with SXT_USER_ID)
 
 #
 	SXT_URI="https://api.spaceandtime.app/v1" 
@@ -117,6 +116,8 @@
 	SXT_USER_ID=""
 	SXT_SCHEME="ECDSA"
 	SXT_JOIN_CODE=""
+	PUBLIC_KEY=""
+	PRIVATE_KEY=""
 #
 
 6. Initiating a schema will create a directory in `schemas` --> `schemas/<schema>/`
