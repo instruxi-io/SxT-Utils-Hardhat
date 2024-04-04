@@ -124,12 +124,13 @@
 6. Initiating a schema will create a directory in `schemas` --> `schemas/<schema>/`
 
 #
-	npx hardhat sxt-utils:initSchema --schema <schema> 
+	npx hardhat sxt-utils:login	
 #
 
 7. Create the schema 
 
 #
+	npx hardhat sxt-utils:initSchema --schema <schema> 
 	npx hardhat sxt-utils:createSchema --schema <schema> 
 #
 
@@ -137,15 +138,14 @@
 8. Model your tables as [business objects](https://dbdiagram.io/d/660439a2ae072629ce1c2156) and place them in the business-objects directory --> business-objects/<BUSINESS_OBJECT>.ejs
 
 #
-	TABLE TEST.TO_DO {
-    	ID VARCHAR(36)
-    	MESSAGE VARCHAR(36)
-    	DUE_DATE VARCHAR(36)
-    
-    Indexes {
-        (ID) [pk, name:"pk"]
-    	}
-  	}	
+	TABLE <%= schema %>.LISTS {
+		id INTEGER
+		list VARCHAR(256)
+
+		Indexes {
+			(id) [pk, name:"pk"]   
+		}
+	}
 #
 
 9. Generate all of the table-level biscuits. Run this command for each table in your business object. Note, biscuit making has a dependency on WASM making it incompatible with Typescript. For this step use NPM.
