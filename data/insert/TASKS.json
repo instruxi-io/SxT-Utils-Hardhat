@@ -1,0 +1,14 @@
+[
+    {
+        "id": 1,
+        "list_id": 1,
+        "task": "Task 1",
+        "complete": false
+    },    
+    {
+        "id": 2,
+        "list_id": 1,
+        "task": "Task 2",
+        "complete": true
+    }
+]

@@ -1,0 +1,23 @@
+node_modules
+.env
+private.env
+dev.env
+
+coverage
+coverage.json
+
+#Buidler files
+cache
+artifacts
+
+typechain
+yarn-error.log
+
+schemas/*
+
+#data/
+
+session.json
+
+/*.zip
+/*.tar.gz
