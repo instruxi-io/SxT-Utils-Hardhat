@@ -1,14 +1,16 @@
-## Serverless Mesh
+## Mesh Serverless
 
-### The Serverless Mesh project provides a user-friendly framework for DApp development with the Mesh SDK. It serves as a monorepo for managing smart contracts, deploying DApp backends to Space and Time, archiving files to Storj, and setting up authorization events on the Mesh Gateway.
+### The Mesh Serverless project provides a user-friendly framework for DApp development with the Mesh SDK. It serves as a monorepo for managing smart contracts, deploying DApp backends to Space and Time, archiving files to Storj, and setting up authorization events on the Mesh Gateway.
 
 ### Dependencies
 
-- Node.js (Node 18, 19, or 20)
-- Read and write privileges to local filesystem
+- [Node.js](https://nodejs.org/en) - versions 19 or 20
+- [NPM](https://docs.npmjs.com/downloading-and-installing-node-js-and-npm)
+- [NVM](https://github.com/nvm-sh/nvm) - optional
+- Read and write privileges to a local filesystem
+- WSL is recommended for Windows users
 
 #
-
 	nvm --version
 	nvm use 
 
@@ -16,33 +18,59 @@
 
     npm install
 
-# Getting Started -  Generate a wallet then connect to a live blockchain network 
+## Getting Started -  Generate a wallet then connect to a live blockchain network 
 
 ### First Configure environment variables in .env (refer to example.env)
 
-1. create public and private key using the Hardhat script below or import from Metamask (this method is not fit for mainnet, testing only)
+1. Create a public and private key using the Hardhat script below or import them from Metamask (this method is not fit for mainnet, testing only) and set them as environment variables in a .env file.
 
-##
+#
 
 	npm run make-eth-keys
+#
+	touch .env
+#
+	PRIVATE_KEY=""
+	PUBLIC_KEY=""
+#
 
-##
+### Environment Variables:  Populating the .env file:
 
-2. Add RPC endpoints to the .env file to set up your network providers. The Mesh Indexer is monitoring Ethereum, Sepolia, Avalanche, Fuji, Polygon, Mumbai, Arbitrum, and Base and this Hardhat project is preconfigured to interact with each of those.
+2. Add RPC endpoints to the .env file to set up your network providers. Leave blank if you cannot provide a value and be sure the PUBLIC_KEY and PRIVATE_KEY variables from step 1 are also set. Etherscan API tokens can be found by setting up an account with the community scanning (tools)[https://etherscan.io/myaccount]
 
-### Valid values for .env:
+#
+	PRIVATE_KEY=""
+	PUBLIC_KEY=""
 
-	ETHEREUM_RPC_URL
-	AVALANCHE_FUJI_RPC_URL
-	ETHEREUM_SEPOLIA_RPC_URL
-	POLYGON_MUMBAI_RPC_URL
-	POLYGON_RPC_URL
-	ETHEREUM_RPC_URL
-	AVALANCHE_RPC_URL
-	ARBITRUM_RPC_URL
-	BASE_RPC_URL
+	ETHEREUM_RPC_URL="https://example.rpc/"
+	AVALANCHE_FUJI_RPC_URL=""
+	ETHEREUM_SEPOLIA_RPC_URL=""
+	POLYGON_MUMBAI_RPC_URL=""
+	POLYGON_RPC_URL=""
+	ETHEREUM_RPC_URL=""
+	AVALANCHE_RPC_URL=""
+	ARBITRUM_RPC_URL=""
+	BASE_RPC_URL=""
 
-##
+	ETHERSCAN_TOKEN=""
+	ETHERSCAN_TOKEN_POLYGON=""
+	ETHERSCAN_TOKEN_AVALANCHE=""
+	ETHERSCAN_TOKEN_ETHEREUM=""
+	ETHERSCAN_TOKEN_ARBITRUM=""
+#
+
+
+
+
+> The Mesh Indexer is monitoring Ethereum, Sepolia, Avalanche, Fuji, Polygon, Mumbai, Arbitrum, and Base and this Hardhat project is configured to accept the following RPC values. Use networks.ts to extend or customize your network scope
+
+###
+
+3. Hardhat uses a concept called tasks to execute scripts defined in `tasks/` using your PRIVATE_KEY as the signer. Here is how to list all of the available tasks in your project. Notice that major task categories prefix the task actions like `<task category>:<task> --parameter1 abc --parameter2 123`.
+
+#
+	npx hardhat
+#
 
 > <strong>Security Notice:</strong> <br><br>
 <strong>@chainlink/enc.env</strong> - This hardhat project comes equipped with the NPM package "enc.env" for encrypting your private key locally. We recommend transitioning to this as soon as you are comfortable evaluating the tool as a minimum best practice. <br><br>
@@ -57,6 +85,7 @@
 	npx hardhat enforcer:registerAccount --network <network> --username <username> --email <email> --tenantcode <tenantCode>
 
 #### Valid Values for network:
+
 	ethereum
 	avalanche
 	polygon
@@ -77,71 +106,92 @@
 
 #
 
-5. add the api-key to the Mesh Starter Kit environment variables
 
-## SxT Utils (Optional) - Head over to [Space and Time](https://app.spaceandtime.ai/) to register your wallet. It's free to get started!
-### Use the same public key as you have been using in Space and Time for best results
+## SxT Utils (Optional) - Head over to [Space and Time](https://app.spaceandtime.ai/) to register your wallet. It's free to get started and you can use the same public key as above
 
-4. initiate a dapp project --> schemas/<dapp>
+5. Set Space and Time environment variables in .env  
 
-5. develop a schema and place it in the business-objects directory --> schemas/<schema>/business-objects/<SCHEMA>.<BUSINESS_OBJECT>.ejs
+#
+	SXT_URI="https://api.spaceandtime.app/v1" 
+	SXT_URI_V2="https://api.spaceandtime.app/v2"
+	SXT_USER_ID=""
+	SXT_SCHEME="ECDSA"
+	SXT_JOIN_CODE=""
+#
 
-6. make dapp schema one-shot or make dapp schema artifacts individually
+6. Initiating a schema will create a directory in `schemas` --> `schemas/<schema>/`
 
-	6a. derive table-definitions from the business-objects --> schemas/<schema>/table-definitions/<SCHEMA>.<TABLE>.json
+#
+	npx hardhat sxt-utils:initSchema --schema <schema> 
+#
+
+7. Create the schema 
+
+#
+	npx hardhat sxt-utils:createSchema --schema <schema> 
+#
+
+
+8. Model your tables as [business objects](https://dbdiagram.io/d/660439a2ae072629ce1c2156) and place them in the business-objects directory --> business-objects/<BUSINESS_OBJECT>.ejs
+
+#
+	TABLE TEST.TO_DO {
+    	ID VARCHAR(36)
+    	MESSAGE VARCHAR(36)
+    	DUE_DATE VARCHAR(36)
+    
+    Indexes {
+        (ID) [pk, name:"pk"]
+    	}
+  	}	
+#
+
+9. Generate all of the table-level biscuits. Run this command for each table in your business object. Note, biscuit making has a dependency on WASM making it incompatible with Typescript. For this step use NPM.
+
+#
+
+	npm run make-table-biscuits-js --table <table>
+
+#
+
+10. Generate all of the table-level artifacts for the given tables
+
+#
+	sxt-utils:saveTableSecurity --schema <schema> --businessobject <businessObject>
+	sxt-utils:saveTableDefinitions --schema <schema> --businessobject <businessObject>
+	sxt-utils:saveTableDDL --schema <schema> --businessobject <businessObject>
+	sxt-utils:saveTableDML --schema <schema> --businessobject <businessObject>
+	sxt-utils:saveTableDQL --schema <schema> --businessobject <businessObject>
+# 
+
+11. Create the tables defined in the business object. Note, that business objects are case sensitive and all attributes should be all caps due
+
+#
+	npx hardhat sxt-utils:createTable --schema <schema> --businessobject <business_object>
+
+	or
 	
-	6b. derive table security (public and private keys) --> schemas/<schema>/.secure/keys/<SCHEMA>.<TABLE>.json
+	npx hardhat sxt-utils:createTable --schema <schema> --table <table>
+#
+
+12. Load data into the tables from `data/`
+
+#
+	npx hardhat sxt-utils:insertIntoTable --schema <schema> --businessobject <business_object>
+
+	or
 	
-	6c. derive table biscuits from the table private keys --> schemas/<schema>/.secure/keys/<SCHEMA>.<TABLE>.json
+	npx hardhat sxt-utils:insertIntoTable --schema <schema> --table <table>
+#
+
+13. Preview master data
+
+#
+	npx hardhat sxt-utils:insertIntoTable --schema <schema> --businessobject <business_object>
+
+	or
 	
-	6d. generate sql dql templates --> schemas/<schema>/templates/dql/preview/<SCHEMA>.<TABLE>.json
-	
-	6e. generate sql ddl templates --> schemas/<schema>/templates/ddl/(create, drop, index)/<SCHEMA>.<TABLE>.json
-	
-	6f. generate sql dml templates --> schemas/<schema>/templates/dml/(insert, update, delete)/<SCHEMA>.<TABLE>.json
-	
-	6g. generate sql topic-streaming templates --> schemas/<schema>/templates/topic-streaming/<SCHEMA>.<TABLE>.json
-	
-7. backup the biscuits to Mesh OS or local Downloads
+	npx hardhat sxt-utils:insertIntoTable --schema <schema> --table <table>
+#
 
-8. load master data
-
-9. query master data
-
-10. delete master data
-
-11. drop the tables from the schema
-
-12. back up the schema directory (without security)
-
-13. push to github
-
-###########################################################################################################
-# Mesh Starter Kit (Hardhat) - Domain Manager 
-
-1. fund wallet with gas token
-2. deploy 
-
-###########################################################################################################
-# Mesh Starter Kit (Hardhat) - Service Accounts, Group Providers, and Credit Threshold
-
-###########################################################################################################
-# Mesh Starter Kit (Hardhat) - Object Store
-
-###########################################################################################################
-# Mesh Starter Kit (Hardhat) - Key Value
-
-###########################################################################################################
-# Mesh Starter Kit (Hardhat) - vNFT Gateway
-
-###########################################################################################################
-# Mesh Starter Kit (Hardhat) - Web3SQL and ACL
-
-###########################################################################################################
-# Mesh Starter Kit (Hardhat) - Enforcer Policies
-
-###########################################################################################################
-# Mesh Starter Kit (Hardhat) - Chainlink Utils 
-
-###########################################################################################################
-# Mesh Starter Kit (Hardhat) - Fractional Real World Asset using Chainlink Functions, SxT, Cloudflare
+14. Be sure to backup your schema directory locally. Files in `.secure/` will not be committed to Github.
