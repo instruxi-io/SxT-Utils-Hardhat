@@ -28,7 +28,7 @@
 
 	npm run make-eth-keys
 #
-	touch .env
+	mv dev.env .env
 #
 	PRIVATE_KEY=""
 	PUBLIC_KEY=""
