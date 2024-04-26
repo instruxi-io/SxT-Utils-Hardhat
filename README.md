@@ -148,7 +148,14 @@
 	}
 #
 
-9. Generate all of the table-level biscuits. Run this command for each table in your business object. Note, biscuit making has a dependency on WASM making it incompatible with Typescript. For this step use NPM.
+9. Generate all of the table security files. Note, that the output here is a dependency for the biscuit making process in step 10.
+
+#
+	sxt-utils:saveTableSecurity --schema <schema> --businessobject <businessObject>
+
+#
+
+10. Generate all of the table-level biscuits. Run this command for each table in your business object. Note, biscuit making has a dependency on WASM making it incompatible with Typescript. For this step use NPM.
 
 #
 
@@ -156,17 +163,16 @@
 
 #
 
-10. Generate all of the table-level artifacts for the given tables
+11. Generate all of the table-level artifacts for the given tables
 
 #
-	sxt-utils:saveTableSecurity --schema <schema> --businessobject <businessObject>
 	sxt-utils:saveTableDefinitions --schema <schema> --businessobject <businessObject>
 	sxt-utils:saveTableDDL --schema <schema> --businessobject <businessObject>
 	sxt-utils:saveTableDML --schema <schema> --businessobject <businessObject>
 	sxt-utils:saveTableDQL --schema <schema> --businessobject <businessObject>
 # 
 
-11. Create the tables defined in the business object. Note, that business objects are case sensitive and all attributes should be all caps due
+12. Create the tables defined in the business object. Note, that business objects are case sensitive and all attributes should be all caps due
 
 #
 	npx hardhat sxt-utils:createTable --schema <schema> --businessobject <business_object>
@@ -176,7 +182,7 @@
 	npx hardhat sxt-utils:createTable --schema <schema> --table <table>
 #
 
-12. Load data into the tables from `data/`
+13. Load data into the tables from `data/`
 
 #
 	npx hardhat sxt-utils:insertIntoTable --schema <schema> --businessobject <business_object>
@@ -186,7 +192,7 @@
 	npx hardhat sxt-utils:insertIntoTable --schema <schema> --table <table>
 #
 
-13. Preview master data
+14. Preview master data
 
 #
 	npx hardhat sxt-utils:insertIntoTable --schema <schema> --businessobject <business_object>
