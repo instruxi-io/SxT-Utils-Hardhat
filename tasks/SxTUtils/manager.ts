@@ -1,6 +1,6 @@
 import { task, types } from "hardhat/config";
 import { HardhatRuntimeEnvironment } from 'hardhat/types';
-import { TaskArgs } from './types';
+import { TaskArgs} from './types';
 import SchemaManager from "./Schema";
 import ClientManager from "./Client";
 import TablesManager from "./Tables";
@@ -21,8 +21,7 @@ for (const queryAction in queryActions) {
       const tableManager = new TablesManager(taskArgs);
       await tableManager.init(taskArgs);
       const clientManager = new ClientManager(tableManager)
-      const result = await queryActions[queryAction](hre, clientManager);
-      console.log(result.message);
+      await queryActions[queryAction](hre, clientManager);
   });
 }
 
@@ -49,10 +48,7 @@ for (const tableAction in tableActions) {
       const tableManager = new TablesManager(taskArgs);
       await tableManager.init(taskArgs);
       const clientManager = new ClientManager(tableManager)
-      const result = await tableActions[tableAction](hre, clientManager);
-      for (let i of result) {
-        console.log(i.message);
-    }
+      await tableActions[tableAction](hre, clientManager);
   });
 }
 
@@ -77,8 +73,7 @@ for (const stagingAction in stagingActions) {
     }
     const tableManager = new TablesManager(taskArgs);
     await tableManager.init(taskArgs);
-    let result = await stagingActions[stagingAction](tableManager);
-    console.log(result.message);
+    await stagingActions[stagingAction](tableManager);
   });
 }
 
@@ -97,8 +92,12 @@ for (const schemaAction in schemaActions) {
     .addOptionalParam("force", "Overwrite existing files", false, types.boolean)
     .addOptionalParam("format", "The format of the backup archive (zip, tar)", 'zip', types.string)
     .setAction(async (taskArgs: TaskArgs, hre: HardhatRuntimeEnvironment) => {
-      let request  = await schemaActions[schemaAction](hre, taskArgs);
-      console.log(request.message);
+      try {
+        let schemaActionStatus  = await schemaActions[schemaAction](hre, taskArgs);
+        console.log(schemaActionStatus.message);
+      } catch (error) {
+        throw new Error(`${(error as Error).message}`);
+      }
     });
 }
 
@@ -110,10 +109,14 @@ const sessionActions: SessionActions = {
 
 for (const sessionAction in sessionActions) {
   task(`sxt-utils:${sessionAction}`, `Performing session ${sessionAction}`)
-  .setAction(async (taskArgs: TaskArgs, hre: HardhatRuntimeEnvironment) => {
-    let request = await sessionActions[sessionAction](hre, taskArgs);
-    console.log(request.message);
-  });
+    .setAction(async (taskArgs: TaskArgs, hre: HardhatRuntimeEnvironment) => {
+      try {
+        let sessionActionStatus = await sessionActions[sessionAction](hre, taskArgs);
+        console.log(sessionActionStatus.message);
+      } catch (error) {
+        console.error(JSON.stringify(error, null, 2));
+      }
+    });
 }
 
 export default {};

@@ -137,7 +137,6 @@ class ClientManager {
       console.error('dqlSuccess is null or does not contain data');
       return;
     }
-  
     try {
       let dataArrays = [];
       if (dqlSuccess.data.length > 0) {
@@ -184,8 +183,8 @@ class ClientManager {
       let output = dtable(dataArrays, config);
       console.log(output);
   
-      if (outFile && path.extname(outFile) === '.json') {
-        fs.writeFileSync(outFile, JSON.stringify(dqlSuccess.data, null, 2));
+      if (outFile && path.extname('tmp/' + outFile) === '.json') {
+        fs.writeFileSync('tmp/' + outFile, JSON.stringify(dqlSuccess.data, null, 2));
       } else if (!outFile) {
         console.error('No outFile defined. Output will not be saved');
       } else {
@@ -198,7 +197,6 @@ class ClientManager {
 
   async manageTablePreviewDQL(hre: HardhatRuntimeEnvironment): Promise<SxTResult[]> {
     const results: SxTResult[] = [];
-  
     for (const table of this.tablesManager.tables) {
       console.log(`DQL Manager (schema=${this.tablesManager.schema.toUpperCase()}, table=${table.tableName}, action=preview)`);
       const sql: RenderSQLResult = await this.tablesManager.dqlPreviewFromTable(table);
@@ -226,8 +224,10 @@ class ClientManager {
       console.log(`----------------------------------------\n ${sql.sql}`);
   
       const [dqlSuccess, dqlError] = await hre.sxtSDK.DQL([table.resourceId], sql.sql, [table.biscuits?.dql]);
-  
+
+      console.log(`----------------------------------------\n ${sql.sql}`);
       if (dqlError) {
+        console.log("No data returned: ", dqlError.message);
         results.push({
           success: false,
           message: `----------------------------------------\nDQL Failed --> ${dqlError?.response?.data.title}\n\t${dqlError?.response?.data.detail}`,

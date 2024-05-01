@@ -6,12 +6,11 @@ class SessionManager {
     constructor (){}
 
     async login(hre: HardhatRuntimeEnvironment, taskArgs: TaskArgs): Promise<Result> {
-      const [session, error] = await hre.sxtSDK.Authenticate();
+      const [session, error] = await hre.sxtSDK.authenticate('wallet', ''); 
       if (error) {
-        console.error('Failed to authenticate:', error);
-        return { success: false, message: 'Failed to authenticate: ' + error };
+        return { success: false, message: 'Failed to authenticate: ' + error.message };
       }
-      fs.writeFileSync('session.json', JSON.stringify(session));
+      fs.writeFileSync('tmp/session.json', JSON.stringify(session));
       return { success: true, message: 'Authentication successful' };
     }
 }

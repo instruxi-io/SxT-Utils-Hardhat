@@ -1,6 +1,6 @@
 import { HardhatRuntimeEnvironment } from 'hardhat/types';
 import { MeshSDK } from '@instruxi-io/mesh-sdk-core';
-import { SpaceAndTimeSDK, SessionData} from 'SpaceAndTimeSDK';
+import { SpaceAndTimeSDK, SessionData} from '@instruxi-io/sxt-typescript-sdk';
 import { Wallet } from "ethers";
 import fs from 'fs';
 

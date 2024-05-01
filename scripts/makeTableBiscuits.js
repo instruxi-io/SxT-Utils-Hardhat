@@ -31,7 +31,7 @@ const argv = yargs(hideBin(process.argv))
 async function main() {
     try {
         let BiscuitMaker;
-        const module = await import('BiscuitMaker');
+        const module = await import('@instruxi-io/sxt-biscuit-maker');
         BiscuitMaker = module.default;
 
         const biscuits = BiscuitMaker.init();

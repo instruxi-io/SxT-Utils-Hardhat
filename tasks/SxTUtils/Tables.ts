@@ -1,17 +1,26 @@
 import fs from 'fs';
 import path from 'path';
-import archiver, { TarEntryData } from 'archiver';
-import { HardhatRuntimeEnvironment } from 'hardhat/types';
-import { QueryTaskArgs , Security, TaskArgs, Result, RenderSQLResult, Table, Column, Records, TableMapping, ColumnMapping, SxTResult, DMLActions, DDLActions, TablesResult, Biscuits } from './types'; 
+import archiver from 'archiver';
+import { Security, TaskArgs, Result, RenderSQLResult, Table, Records, TableMapping, ColumnMapping, DMLActions, DDLActions, TablesResult, Biscuits } from './types'; 
 import Utils from './utils/utils'; 
 import extract from 'extract-zip';
 import rimraf from 'rimraf';
 import mkdirp from 'mkdirp';
-import { table as dtable } from 'table';
-import { HttpSuccess, HttpError, SessionData } from 'SpaceAndTimeSDK/src/types';
-import { ED25519Wallet, KeyPairEncodings } from "SpaceAndTimeSDK";
+import { ED25519Wallet } from '@instruxi-io/sxt-typescript-sdk';
 import ejs from 'ejs'
 import { Parser } from '@dbml/core';
+
+// see https://github.com/instruxi-io/sxt-utils/blob/master/packages/SxT-Typescript-SDK/src/ED25519Wallet.ts
+// will export from types next version
+export interface KeyPairEncodings {
+  ED25519PublicKeyUint: Uint8Array;
+  ED25519PrivateKeyUint: Uint8Array;
+  b64PublicKey: string;
+  b64PrivateKey: string;
+  hexEncodedPublicKey: string;
+  hexEncodedPrivateKey: string;
+}
+
 
 class TablesManager {
     tables: Table[];
