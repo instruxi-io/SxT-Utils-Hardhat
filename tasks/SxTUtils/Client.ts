@@ -44,6 +44,8 @@ class ClientManager {
       const sqlToExecute = createSQLText || sql.sql;
       console.log(`DDL on ${table.tableName} with biscuit: `, table.biscuits.ddl.substring(0, 30), '...');
       const [ddlSuccess, ddlError] = await hre.sxtSDK.createTable(sqlToExecute, [table.biscuits.ddl]);
+      console.log(ddlError)
+      console.log(ddlSuccess)
       if (ddlError) {
         results.push({
           success: false,

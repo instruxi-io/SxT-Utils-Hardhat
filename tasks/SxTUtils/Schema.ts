@@ -185,6 +185,7 @@ class SchemaManager {
         console.log(sql.sql)
         let [ddlSuccess, ddlError] = await hre.sxtSDK.DDL(sql.sql, [], "");
         if (ddlError) {
+          console.log(ddlError, "\n Possible duplicate schema")
           result = { 
             success: false,
             message: `----------------------------------------\nDDL Failed --> ${ddlError?.response?.data.title}\n\t${ddlError?.response?.data.detail}`, 
