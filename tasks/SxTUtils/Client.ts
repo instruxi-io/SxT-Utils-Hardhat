@@ -2,7 +2,7 @@ import { HardhatRuntimeEnvironment } from 'hardhat/types';
 import { RenderSQLResult, SxTResult } from './types'; 
 import { table as dtable } from 'table';
 import TablesManager from './Tables'
-import { HttpSuccess } from 'SpaceAndTimeSDK/src/types';
+import { HttpSuccess } from '@instruxi-io/sxt-typescript-sdk/src/types';
 import fs from 'fs';
 import path from 'path';
 
@@ -43,7 +43,7 @@ class ClientManager {
   
       const sqlToExecute = createSQLText || sql.sql;
       console.log(`DDL on ${table.tableName} with biscuit: `, table.biscuits.ddl.substring(0, 30), '...');
-      const [ddlSuccess, ddlError] = await hre.sxtSDK.createTable(sqlToExecute, table.accessType, [table.biscuits.ddl]);
+      const [ddlSuccess, ddlError] = await hre.sxtSDK.createTable(sqlToExecute, [table.biscuits.ddl]);
       if (ddlError) {
         results.push({
           success: false,
