@@ -20,7 +20,7 @@
 
 Note, you will need to login to Github's NPM package registry
 
-	npm login --registry=https://npm.pkg.github.com
+    npm login --registry=https://npm.pkg.github.com
 
 ## Getting Started -  Generate a wallet then connect to a live blockchain network 
 
@@ -155,7 +155,7 @@ Note, you will need to login to Github's NPM package registry
 9. Generate all of the table security files. Note, that the output here is a dependency for the biscuit making process in step 10.
 
 #
-	sxt-utils:saveTableSecurity --schema <schema> --businessobject <businessObject>
+	npx hardhat sxt-utils:saveTableSecurity --schema <schema> --businessobject <businessObject>
 
 #
 
@@ -163,7 +163,7 @@ Note, you will need to login to Github's NPM package registry
 
 #
 
-	npm run make-table-biscuits-js --table <table>
+	npm run make-table-biscuits-js -- --table <table>
 
 #
 
