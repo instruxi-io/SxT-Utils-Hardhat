@@ -18,6 +18,10 @@
 
     npm install
 
+Note, you will need to login to Github's NPM package registry
+
+	npm login --registry=https://npm.pkg.github.com
+
 ## Getting Started -  Generate a wallet then connect to a live blockchain network 
 
 ### First Configure environment variables in .env (refer to example.env)
