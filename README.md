@@ -130,7 +130,7 @@
 
 #
 
-	npm run make-table-biscuits-js --table <table>
+	npm run make-table-biscuits-js -- --schema <schema> --table <table>
 
 #
 
