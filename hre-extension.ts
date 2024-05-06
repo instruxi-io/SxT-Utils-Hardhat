@@ -1,7 +1,7 @@
 import { HardhatRuntimeEnvironment } from 'hardhat/types';
 import { SpaceAndTimeSDK, SessionData} from '@instruxi-io/sxt-typescript-sdk';
 import { Wallet } from "ethers";
-import { writeFileSync, readFileSync, existsSync } from 'fs';
+import { writeFileSync, readFileSync, existsSync, mkdirSync } from 'fs';
 
 export type SxTSDKInstance = ReturnType<typeof SpaceAndTimeSDK.init>;
 
@@ -44,6 +44,7 @@ export function initSxTSDK(
             session = JSON.parse(readFileSync(sessionFilePath, 'utf8'));
         } else {
             session = {accessToken: '', refreshToken: '', accessTokenExpires: 0, refreshTokenExpires: 0};
+            mkdirSync('tmp', { recursive: true });
             writeFileSync(sessionFilePath, JSON.stringify(session), 'utf8');
         }
         const sdkParams = {
@@ -60,7 +61,6 @@ export function initSxTSDK(
         throw new SDKInitializationError("SxT SDK initialization failed");
     }
 }
-
 export function extendHRE(params: {
     hre: HardhatRuntimeEnvironment, 
     sxtUri: string,
