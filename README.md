@@ -1,6 +1,6 @@
 ## SxT-Utils Hardhat
 
-### The SxT-Utils Hardhat project provides a user-friendly framework for DApp development with the SxT Typescript SDK. It serves as a monorepo for managing smart contracts, deploying DApp backends to Space and Time
+### The SxT-Utils Hardhat project provides a user-friendly framework for DApp development with the SxT Typescript SDK
 
 ### Dependencies
 
