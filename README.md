@@ -1,6 +1,6 @@
-## Mesh Serverless
+## SxT-Utils Hardhat
 
-> The Mesh Serverless project provides a user-friendly framework for DApp development with the Mesh SDK. If you are only using Space and Time, you can skip to the part 5 of the setup ReadMe sectioned, **SxT Utils**.
+### The SxT-Utils Hardhat project provides a user-friendly framework for DApp development with the SxT Typescript SDK. It serves as a monorepo for managing smart contracts, deploying DApp backends to Space and Time
 
 ### Dependencies
 
@@ -18,10 +18,6 @@
 
     npm install
 
-Note, you will need to login to Github's NPM package registry
-
-    npm login --registry=https://npm.pkg.github.com
-
 ## Getting Started -  Generate a wallet then connect to a live blockchain network 
 
 ### First Configure environment variables in .env (refer to example.env)
@@ -32,8 +28,7 @@ Note, you will need to login to Github's NPM package registry
 
 	npm run make-eth-keys
 #
-	mv dev.env .env
-#
+	touch .env
 #
 	PRIVATE_KEY=""
 	PUBLIC_KEY=""
@@ -64,7 +59,6 @@ Note, you will need to login to Github's NPM package registry
 	ETHERSCAN_TOKEN_ARBITRUM=""
 #
 
-> The Mesh Indexer is monitoring Ethereum, Sepolia, Avalanche, Fuji, Polygon, Mumbai, Arbitrum, and Base and this Hardhat project is configured to accept the following RPC values. Use networks.ts to extend or customize your network scope
 
 ###
 
@@ -78,13 +72,6 @@ Note, you will need to login to Github's NPM package registry
 <strong>@chainlink/enc.env</strong> - This hardhat project comes equipped with the NPM package "enc.env" for encrypting your private key locally. We recommend transitioning to this as soon as you are comfortable evaluating the tool as a minimum best practice. <br><br>
 <strong>.gitignore</strong> - Never remove the .gitignore and never move <strong>.secure</strong>, <strong>.key</strong>, or <strong>.env</strong> file from their locations. These directories contain sensitive data that allow administrators to operate on the decentralized resources that are configured in this project. Consider using a combination env.enc, GitCrypt, and/or other remote backup options where the artifacts can be encrypted at rest under password lock. Hardhat plugins can extend the provider capabilities to MPC wallet providers or Hardware wallets.<br><br>
 
-### User Registration - Contact your Mesh Gateway admin for your tenant code. 
-
-3. This command will sign a piece of text data, submit it to the Mesh Auth Enforcer, and upon signature validation you will be emailed a link to confirm your email address
-
-#
-
-	npx hardhat enforcer:registerAccount --network <network> --username <username> --email <email> --tenantcode <tenantCode>
 
 #### Valid Values for network:
 
@@ -100,20 +87,9 @@ Note, you will need to login to Github's NPM package registry
 
 #
 
-4. Click the activation link sent to your email and copy out the API KEY returned in response. Set the MESH_API_KEY environment variable in .env
+## SxT Utils (Optional) - Head over to [Space and Time](https://app.spaceandtime.ai/) to register your wallet. It's free to get started and you can use the same public key as above
 
-#
-
-	MESH_API_KEY = "00000-00000-00000-00000-000000"
-
-#
-
-
-### SxT Utils (Optional) 
-
-> Head over to [Space and Time](https://app.spaceandtime.ai/) to register your wallet. It's free to get started and you can use the same public key as above
-
-5. Set Space and Time environment variables in .env (PUBLIC_KEY and PRIVATE_KEY must be the keys associated with SXT_USER_ID)
+4. Set Space and Time environment variables in .env. If your your SxT UserId is not active, then the program will attempt to use SXT_JOIN_CODE to create and add your current wallet context to Space and Time
 
 #
 	SXT_URI="https://api.spaceandtime.app/v1" 
@@ -121,62 +97,54 @@ Note, you will need to login to Github's NPM package registry
 	SXT_USER_ID=""
 	SXT_SCHEME="ECDSA"
 	SXT_JOIN_CODE=""
-	PUBLIC_KEY=""
-	PRIVATE_KEY=""
 #
 
-6. Initiating a schema will create a directory in `schemas` --> `schemas/<schema>/`
-
-#
-	npx hardhat sxt-utils:login	
-#
-
-7. Create the schema 
+5. Initiating a schema will create a directory in `schemas` --> `schemas/<schema>/`
 
 #
 	npx hardhat sxt-utils:initSchema --schema <schema> 
+#
+
+6. Create the schema 
+
+#
 	npx hardhat sxt-utils:createSchema --schema <schema> 
 #
 
 
-8. Model your tables as [business objects](https://dbdiagram.io/d/660439a2ae072629ce1c2156) and place them in the business-objects directory --> business-objects/<BUSINESS_OBJECT>.ejs
+7. Model your tables as [business objects](https://dbdiagram.io/d/660439a2ae072629ce1c2156) and place them in the business-objects directory --> business-objects/<BUSINESS_OBJECT>.ejs
 
 #
-	TABLE <%= schema %>.LISTS {
-		id INTEGER
-		list VARCHAR(256)
-
-		Indexes {
-			(id) [pk, name:"pk"]   
-		}
-	}
+	TABLE TEST.TO_DO {
+    	ID VARCHAR(36)
+    	MESSAGE VARCHAR(36)
+    	DUE_DATE VARCHAR(36)
+    
+    Indexes {
+        (ID) [pk, name:"pk"]
+    	}
+  	}	
 #
 
-9. Generate all of the table security files. Note, that the output here is a dependency for the biscuit making process in step 10.
-
-#
-	npx hardhat sxt-utils:saveTableSecurity --schema <schema> --businessobject <businessObject>
+8. Generate all of the table-level biscuits. Run this command for each table in your business object. Note, biscuit making has a dependency on WASM making it incompatible with Typescript. For this step use NPM.
 
 #
 
-10. Generate all of the table-level biscuits. Run this command for each table in your business object. Note, biscuit making has a dependency on WASM making it incompatible with Typescript. For this step use NPM.
+	npm run make-table-biscuits-js --table <table>
 
 #
 
-	npm run make-table-biscuits-js -- --table <table>
+9. Generate all of the table-level artifacts for the given tables
 
 #
-
-11. Generate all of the table-level artifacts for the given tables
-
-#
+	sxt-utils:saveTableSecurity --schema <schema> --businessobject <businessObject>
 	sxt-utils:saveTableDefinitions --schema <schema> --businessobject <businessObject>
 	sxt-utils:saveTableDDL --schema <schema> --businessobject <businessObject>
 	sxt-utils:saveTableDML --schema <schema> --businessobject <businessObject>
 	sxt-utils:saveTableDQL --schema <schema> --businessobject <businessObject>
 # 
 
-12. Create the tables defined in the business object. Note, that business objects are case sensitive and all attributes should be all caps due
+10. Create the tables defined in the business object. Note, that business objects are case sensitive and all attributes should be all caps due
 
 #
 	npx hardhat sxt-utils:createTable --schema <schema> --businessobject <business_object>
@@ -186,7 +154,7 @@ Note, you will need to login to Github's NPM package registry
 	npx hardhat sxt-utils:createTable --schema <schema> --table <table>
 #
 
-13. Load data into the tables from `data/`
+11. Load data into the tables from `data/`
 
 #
 	npx hardhat sxt-utils:insertIntoTable --schema <schema> --businessobject <business_object>
@@ -196,7 +164,7 @@ Note, you will need to login to Github's NPM package registry
 	npx hardhat sxt-utils:insertIntoTable --schema <schema> --table <table>
 #
 
-14. Preview master data
+12. Preview master data
 
 #
 	npx hardhat sxt-utils:insertIntoTable --schema <schema> --businessobject <business_object>
@@ -206,4 +174,4 @@ Note, you will need to login to Github's NPM package registry
 	npx hardhat sxt-utils:insertIntoTable --schema <schema> --table <table>
 #
 
-14. Be sure to backup your schema directory locally. Files in `.secure/` will not be committed to Github.
+13. Be sure to backup your schema directory locally. Files in `.secure/` will not be committed to Github.
