@@ -112,7 +112,7 @@
 #
 
 
-7. Model your tables as [business objects](https://dbdiagram.io/d/660439a2ae072629ce1c2156) and place them in the business-objects directory --> business-objects/<BUSINESS_OBJECT>.ejs
+7. Model your tables as [business objects](https://dbdiagram.io/d/660439a2ae072629ce1c2156) and place them in the business-objects directory --> `business-objects/<BUSINESS_OBJECT>.ejs`
 
 #
 	TABLE TEST.TO_DO {
