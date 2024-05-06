@@ -72,8 +72,6 @@ const config: HardhatUserConfig = {
 extendEnvironment((hre: HardhatRuntimeEnvironment) => {  
     const initParams = {
         hre, 
-        meshUri: config.meshUri, 
-        meshApiKey: config.meshApiKey, 
         sxtUri: config.sxtUri,
         sxtJoinCode: config.sxtJoinCode,
         sxtUserId: config.sxtUserId, 

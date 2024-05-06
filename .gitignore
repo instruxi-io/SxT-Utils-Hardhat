@@ -13,8 +13,8 @@ artifacts
 typechain
 yarn-error.log
 
-
-tmp
+schemas/*
+tmp/*
 session.json
 ./session.json
 /*.zip
