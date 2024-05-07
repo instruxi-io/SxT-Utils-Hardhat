@@ -73,7 +73,7 @@
 <strong>.gitignore</strong> - Never remove the .gitignore and never move <strong>.secure</strong>, <strong>.key</strong>, or <strong>.env</strong> file from their locations. These directories contain sensitive data that allow administrators to operate on the decentralized resources that are configured in this project. Consider using a combination env.enc, GitCrypt, and/or other remote backup options where the artifacts can be encrypted at rest under password lock. Hardhat plugins can extend the provider capabilities to MPC wallet providers or Hardware wallets.<br><br>
 
 
-#### Valid Values for network:
+#### Valid values for network:
 
 	ethereum
 	avalanche
