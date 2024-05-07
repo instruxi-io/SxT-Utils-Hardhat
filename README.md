@@ -11,8 +11,8 @@
 - WSL is recommended for Windows users
 
 #
-	nvm --version
-	nvm use 
+	node --version
+	nvm use 20
 
 ### Git clone the repository, change directory into the project, and install the dependecies 
 
