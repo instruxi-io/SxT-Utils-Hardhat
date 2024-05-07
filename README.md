@@ -116,12 +116,12 @@
 
 #
 	TABLE TEST.TO_DO {
-    	ID VARCHAR(36)
-    	MESSAGE VARCHAR(36)
-    	DUE_DATE VARCHAR(36)
+    		ID VARCHAR(36)
+    		MESSAGE VARCHAR(36)
+    		DUE_DATE VARCHAR(36)
     
-    	Indexes {
-        	(ID) [pk, name:"pk"]
+    		Indexes {
+        		(ID) [pk, name:"pk"]
     		}
   	}	
 #
