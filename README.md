@@ -112,7 +112,7 @@
 #
 
 
-7. Model your tables as [business objects](https://dbdiagram.io/d/660439a2ae072629ce1c2156) and place them in the business-objects directory --> `business-objects/<BUSINESS_OBJECT>.ejs`
+7. Model your tables as [business objects](https://dbdiagram.io/d/660439a2ae072629ce1c2156) and place them in the business-objects directory --> `business-objects/<businessObject>.ejs`
 
 #
 	TABLE TEST.TO_DO {
@@ -126,7 +126,15 @@
   	}	
 #
 
-8. Generate all of the table-level biscuits. Run this command for each table in your business object. Note, biscuit making has a dependency on WASM making it incompatible with Typescript. For this step use NPM.
+7. Generate all of the table-level security. Keep the output of this procedure [rivate. The contents should never be committed to public Github repositories and special caution should be taken when handling production security artifacts.
+
+#
+
+	npx hardhat sxt-utils:saveTableSecurity --schema <schema> --businessobject <businessObject>
+ 
+#
+
+8. Generate all of the table-level biscuits. Run this command for each table in your business object. Note, biscuit making has a dependency on WASM making it incompatible with Typescript. For this step use NPM and keep the output of this procedure private.
 
 #
 
@@ -134,20 +142,19 @@
 
 #
 
-9. Generate all of the table-level artifacts for the given tables
+9. Generate all of the table-level artifacts for the given tables.
 
 #
-	sxt-utils:saveTableSecurity --schema <schema> --businessobject <businessObject>
-	sxt-utils:saveTableDefinitions --schema <schema> --businessobject <businessObject>
-	sxt-utils:saveTableDDL --schema <schema> --businessobject <businessObject>
-	sxt-utils:saveTableDML --schema <schema> --businessobject <businessObject>
-	sxt-utils:saveTableDQL --schema <schema> --businessobject <businessObject>
+	npx hardhat sxt-utils:saveTableDefinitions --schema <schema> --businessobject <businessObject>
+	npx hardhat sxt-utils:saveTableDDL --schema <schema> --businessobject <businessObject>
+	npx hardhat sxt-utils:saveTableDML --schema <schema> --businessobject <businessObject>
+	npx hardhat sxt-utils:saveTableDQL --schema <schema> --businessobject <businessObject>
 # 
 
 10. Create the tables defined in the business object. Note, that business objects are case sensitive and all attributes should be all caps due
 
 #
-	npx hardhat sxt-utils:createTable --schema <schema> --businessobject <business_object>
+	npx hardhat sxt-utils:createTable --schema <schema> --businessobject <businessObject>
 
 	or
 	
@@ -157,7 +164,7 @@
 11. Load data into the tables from `data/`
 
 #
-	npx hardhat sxt-utils:insertIntoTable --schema <schema> --businessobject <business_object>
+	npx hardhat sxt-utils:insertIntoTable --schema <schema> --businessobject <businessObject>
 
 	or
 	
@@ -167,7 +174,7 @@
 12. Preview master data
 
 #
-	npx hardhat sxt-utils:insertIntoTable --schema <schema> --businessobject <business_object>
+	npx hardhat sxt-utils:insertIntoTable --schema <schema> --businessobject <businessObject>
 
 	or
 	
