@@ -120,9 +120,9 @@
     	MESSAGE VARCHAR(36)
     	DUE_DATE VARCHAR(36)
     
-    Indexes {
-        (ID) [pk, name:"pk"]
-    	}
+    	Indexes {
+        	(ID) [pk, name:"pk"]
+    		}
   	}	
 #
 
