@@ -1,11 +1,11 @@
 {
-  "name": "mesh-sdk-serverless",
+  "name": "sxt-utils-hardhat",
   "license": "",
   "version": "0.1.0",
   "engines": {
     "node": ">=20.0.0"
   },
-  "description": "Mesh Serverless",
+  "description": "SxT Utils Hardhat",
   "scripts": {
     "compile": "hardhat compile",
     "test": "hardhat test",
