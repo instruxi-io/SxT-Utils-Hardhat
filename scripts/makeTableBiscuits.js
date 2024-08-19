@@ -15,13 +15,13 @@ const argv = yargs(hideBin(process.argv))
         alias: 't',
         description: 'Provide the schema table name',
         type: 'string',
-        demandOption: true 
+        demandOption: false 
     })
     .option('force', {
         alias: 'f',
-        description: 'Force overwrite of existing biscuit',
-        type: 'boolean',
-        default: false
+        description: 'Force overwrite of existing biscuit(s). Use "all" to process all tables.',
+        type: 'string',
+        default: 'false'
     })
     .help()
     .alias('help', 'h')
@@ -41,48 +41,63 @@ function generateKeyPair() {
     });
 }
 
+async function processSingleTable(BiscuitMaker, schema, table) {
+    const schemaPath = path.join('schemas', schema.toLowerCase());
+    const biscuitFilePath = path.join(schemaPath, '.secure', 'biscuits', `${table}.json`);
+    const securityPath = path.join(schemaPath, '.secure', 'keys', `${table}.json`);
+    const tableDefinitions = path.join(schemaPath, 'tables', `${table}.json`);
+
+    if (!fs.existsSync(tableDefinitions)) {
+        console.log(`Table definitions not found for ${table}. Skipping.`);
+        return;
+    }
+
+    // Create directories if they don't exist
+    fs.mkdirSync(path.dirname(biscuitFilePath), { recursive: true });
+    fs.mkdirSync(path.dirname(securityPath), { recursive: true });
+
+    // Check if the key file exists, if not, generate and save it
+    if (!fs.existsSync(securityPath)) {
+        console.log(`Key file not found. Generating new key pair for ${table}...`);
+        const { privateKey, publicKey } = generateKeyPair();
+        const keyData = {
+            privateKey: privateKey,
+            publicKey: publicKey
+        };
+        fs.writeFileSync(securityPath, JSON.stringify(keyData, null, 2));
+        console.log(`Key pair generated and saved to ${securityPath}`);
+    }
+
+    const biscuits = BiscuitMaker.init();
+    await biscuits.generateTableBiscuits(schema + '.' + table, BiscuitMaker, securityPath);
+    fs.writeFileSync(biscuitFilePath, JSON.stringify(biscuits._biscuits, null, 2));
+    console.log(`Biscuits generated successfully for ${table} to ${biscuitFilePath}`);
+}
+
 async function main() {
     try {
         let BiscuitMaker;
         const module = await import('@instruxi-io/sxt-biscuit-maker');
         BiscuitMaker = module.default;
 
-        const biscuits = BiscuitMaker.init();
-        const table = argv.table.toUpperCase();
         const schema = argv.schema.toUpperCase();
-
         const schemaPath = path.join('schemas', schema.toLowerCase());
-        const biscuitFilePath = path.join(schemaPath, '.secure', 'biscuits', `${table}.json`);
-        const securityPath = path.join(schemaPath, '.secure', 'keys', `${table}.json`);
-        const tableDefinitions = path.join(schemaPath, 'tables', `${table}.json`);
 
-        if (!fs.existsSync(tableDefinitions)) {
-            throw new Error(`Table definitions are required for biscuit production.\n npx hardhat sxt-utils:saveTableDefinitions --schema ${schema} --table ${table}`);
+        if (argv.force === 'all') {
+            const tablesDir = path.join(schemaPath, 'tables');
+            const tableFiles = fs.readdirSync(tablesDir).filter(file => file.endsWith('.json'));
+            
+            for (const tableFile of tableFiles) {
+                const table = path.basename(tableFile, '.json').toUpperCase();
+                await processSingleTable(BiscuitMaker, schema, table);
+            }
+        } else {
+            if (!argv.table) {
+                throw new Error('Table name is required when not using --force all');
+            }
+            const table = argv.table.toUpperCase();
+            await processSingleTable(BiscuitMaker, schema, table);
         }
-
-        // Create directories if they don't exist
-        fs.mkdirSync(path.dirname(biscuitFilePath), { recursive: true });
-        fs.mkdirSync(path.dirname(securityPath), { recursive: true });
-
-        // Check if the key file exists, if not, generate and save it
-        if (!fs.existsSync(securityPath)) {
-            console.log(`Key file not found. Generating new key pair for ${table}...`);
-            const { privateKey, publicKey } = generateKeyPair();
-            const keyData = {
-                privateKey: privateKey,
-                publicKey: publicKey
-            };
-            fs.writeFileSync(securityPath, JSON.stringify(keyData, null, 2));
-            console.log(`Key pair generated and saved to ${securityPath}`);
-        }
-
-        if (fs.existsSync(biscuitFilePath) && !argv.force) {
-            throw new Error(`Biscuit file already exists at ${biscuitFilePath}. Use the --force option to overwrite it.`);
-        }
-
-        await biscuits.generateTableBiscuits(schema + '.' + table, BiscuitMaker, securityPath);
-        fs.writeFileSync(biscuitFilePath, JSON.stringify(biscuits._biscuits, null, 2));
-        console.log('Biscuits generated successfully for ' + table, 'to', biscuitFilePath);
     } catch (error) {
         console.error(error);
         process.exit(1);
