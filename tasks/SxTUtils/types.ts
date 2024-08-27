@@ -1,6 +1,8 @@
 import { HardhatRuntimeEnvironment } from "hardhat/types";
 import ClientManager from "./Client";
 import TablesManager from "./Tables";
+import SessionManager from "./Session";
+import SchemaManager from "./Schema";
 
 export interface RenderSQLResult {
     success: boolean;
@@ -26,7 +28,14 @@ export interface TaskArgs {
     format?: string;
     persist?: boolean;
     query?: string;
-    outfile?: string
+    outfile?: string;
+}
+
+export interface ViewTaskArgs {
+    schema: string;
+    tables: string;
+    viewName: string;
+    viewType: string;
 }
 
 export interface QueryTaskArgs {
@@ -101,6 +110,50 @@ export type Records = Record[];
 export type DMLActions = 'insert' | 'delete' | 'update';
 export type DDLActions = 'create' | 'drop' | 'index';
 export type DQLActions = 'preview' | 'custom';
+export type EncryptActions = 'encrypt' | 'decrypt';
+
+export type EncryptColumnOptions = 
+  'NONE' | 
+  'LIKE' | 
+  'ASCII' | 
+  'EASCII' | 
+  'EBCDIC' | 
+  'UNICODE' | 
+  'NUMERIC' | 
+  'NUMERIC_NONSTRICT' | 
+  'NUMERICLP' |
+  'MASK_DAY' |
+  'MASK_DAY_RANDOM' |
+  'MASK_MONTH' |
+  'MASK_MONTH_DAY' |
+  'MASK_YEAR' |
+  'MASK_YEAR_MONTH' |
+  'MASK_YEAR_DAY' |
+  'MASK_FULL_DATE';
+
+export type EncryptColumnTypes = 
+  'DET' | 
+  'FPE' | 
+  'FPE_DAY' | 
+  'FPE_TOKEN' | 
+  'MASK' | 
+  'OPE';
+
+export interface EncryptionColumn {
+  name: string;
+  encType: EncryptColumnTypes;
+  encOption: EncryptColumnOptions;
+}
+
+export interface EncryptionTable {
+  resourceId: string;
+  columns: EncryptionColumn[];
+}
+
+export interface EncryptionConfig {
+  tables: EncryptionTable[];
+  biscuits: string[];
+}
 
 export interface ColumnMapping {
     originKey: string;
@@ -152,9 +205,26 @@ export interface StagingActions {
 }
   
 interface SchemaAction {
-    (hre: HardhatRuntimeEnvironment, taskArgs: TaskArgs): Promise<SxTResult> | Promise<Result>;
+    (hre: HardhatRuntimeEnvironment, schemaManager: SchemaManager, taskArgs: TaskArgs): Promise<SxTResult> | Promise<Result>;
 }
   
 export interface SchemaActions {
     [key: string]: SchemaAction;
+}
+
+export type ViewTypes = 'standard' | 'materialized' | 'parameterized';
+
+export interface ViewTaskArgs extends TaskArgs {
+  viewName: string;
+  viewType: string;
+}
+
+export type ViewAction = (
+  hre: HardhatRuntimeEnvironment,
+  clientManager: ClientManager,
+  taskArgs: ViewTaskArgs
+) => Promise<SxTResult>;
+
+export interface ViewActions {
+  [key: string]: ViewAction;
 }
