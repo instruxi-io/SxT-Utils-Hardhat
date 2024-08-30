@@ -1,0 +1,66 @@
+TABLE <%= schema %>.C_USER {
+  id UUID
+  human_Id UUID
+  email VARCHAR
+  first_Name VARCHAR
+  last_Name VARCHAR
+  profile_Image VARCHAR
+  start_Date TIMESTAMP
+  end_Date TIMESTAMP
+  is_Current BOOLEAN
+  created_At TIMESTAMP
+  created_By_Id UUID
+  last_Modified_At TIMESTAMP
+  last_Modified_By_Id UUID
+
+  Indexes {
+      (id) [pk, name:"pk"]
+  }
+}
+
+
+
+TABLE <%= schema %>.TENANT {
+  id UUID
+  tenant_Type VARCHAR
+  entity_User_Id UUID
+  parent_Entity UUID
+  is_Active BOOLEAN
+  start_Date TIMESTAMP
+  end_Date TIMESTAMP
+  is_Current BOOLEAN
+  created_At TIMESTAMP
+  created_By_Id UUID
+  last_Modified_At TIMESTAMP
+  lastModified_By_Id UUID
+
+  Indexes {
+      (id) [pk, name:"tenant_pk"]
+  }
+
+}
+
+TABLE <%= schema %>.HUMAN {
+  id UUID
+  mdm_ID UUID
+  prefix VARCHAR
+  first_Name VARCHAR
+  middle_Name VARCHAR
+  last_Name VARCHAR
+  suffix VARCHAR
+  preferred_Name VARCHAR
+  profile_Image VARCHAR
+  pronoun VARCHAR
+  start_Date TIMESTAMP
+  end_Date TIMESTAMP
+  is_Current BOOLEAN
+  created_At TIMESTAMP
+  created_By_Id UUID
+  last_Modified_At TIMESTAMP
+  last_Modified_By_Id UUID
+
+  Indexes {
+      (id) [pk, name:"human_pk"]
+  }
+
+}
