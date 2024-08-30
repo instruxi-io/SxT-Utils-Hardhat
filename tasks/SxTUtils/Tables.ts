@@ -1,7 +1,7 @@
 import fs from 'fs';
 import path from 'path';
 import archiver from 'archiver';
-import { Security, TaskArgs, Result, RenderSQLResult, Table, Records, TableMapping, ColumnMapping, DMLActions, DDLActions, TablesResult, Biscuits, EncryptColumnOptions, EncryptColumnTypes } from './types'; 
+import { KeyPairEncodings, Security, TaskArgs, Result, RenderSQLResult, Table, Records, TableMapping, ColumnMapping, DMLActions, DDLActions, TablesResult, Biscuits, EncryptColumnOptions, EncryptColumnTypes, View } from './types'; 
 import Utils from './utils/utils'; 
 import extract from 'extract-zip';
 import rimraf from 'rimraf';
@@ -11,15 +11,6 @@ import ejs from 'ejs';
 import { Parser } from '@dbml/core';
 import NodeCache from 'node-cache';
 
-export interface KeyPairEncodings {
-  ED25519PublicKeyUint: Uint8Array;
-  ED25519PrivateKeyUint: Uint8Array;
-  b64PublicKey: string;
-  b64PrivateKey: string;
-  hexEncodedPublicKey: string;
-  hexEncodedPrivateKey: string;
-}
-
 class TablesManagerError extends Error {
   constructor(message: string, public details?: any) {
     super(message);
@@ -28,7 +19,7 @@ class TablesManagerError extends Error {
 }
 
 class TablesManager {
-  private loadedTables: Map<string, Table>;
+  private loadedTables: Map<string, Table | View>;
   private cache: NodeCache;
  
   schema: string;
@@ -52,39 +43,91 @@ class TablesManager {
     console[level](`[${timestamp}] ${level.toUpperCase()}: ${message}`);
   }
 
-  getTables(): Table[] {
-    return Array.from(this.loadedTables.values());
-  }
-
   async init(taskArgs: TaskArgs): Promise<void> {
     try {
-      if (taskArgs.businessobject) {
-        this.businessObject = taskArgs.businessobject;
-        let _tables: TablesResult = await this.listTableDefinitionsFromBusinessObject(this.businessObject, taskArgs.accesstype);
-        if (_tables.success) {
-          for (const table of _tables.tables) {
-            this.loadedTables.set(table.tableName, table);
-          }
+        if (taskArgs.viewname) {
+            const viewName = taskArgs.viewname.toUpperCase();
+            this.log(`Initializing for view: ${viewName}`, 'info');
+            const view = await this.createViewObject(taskArgs.schema.toUpperCase(), viewName);
+            this.loadedTables.set(view.viewName, view);
         }
-      } else if (taskArgs.table) {
-        if (typeof taskArgs.table === 'string') {
-          let _tables: string[] = taskArgs.table.split(',').map(table => table.toUpperCase());
-          for (const table of _tables) {
-            let _table: TablesResult = await this.getTableDefinitionByTable(table, taskArgs.accesstype);
-            if (_table.success && _table.tables.length > 0) {
-              this.loadedTables.set(_table.tables[0].tableName, _table.tables[0]);
+
+        if (taskArgs.businessobject) {
+            this.businessObject = taskArgs.businessobject;
+            let _tables: TablesResult = await this.listTableDefinitionsFromBusinessObject(this.businessObject, taskArgs.accesstype);
+            if (_tables.success) {
+                for (const table of _tables.tables) {
+                    this.loadedTables.set(table.tableName, table);
+                }
             }
-          }
-        } else {
-          throw new TablesManagerError("taskArgs.table must be a string");
+        } else if (taskArgs.table) {
+            if (typeof taskArgs.table === 'string') {
+                let _tables: string[] = taskArgs.table.split(',').map(table => table.toUpperCase());
+                for (const table of _tables) {
+                    if (taskArgs.viewname && table === taskArgs.viewname.toUpperCase()) {
+                        continue;
+                    }
+                    let _table: TablesResult = await this.getTableDefinitionByTable(table, taskArgs.accesstype);
+                    if (_table.success && _table.tables.length > 0) {
+                        this.loadedTables.set(_table.tables[0].tableName, _table.tables[0]);
+                    }
+                }
+            } else {
+                throw new TablesManagerError("taskArgs.table must be a string");
+            }
+        } else if (!taskArgs.viewname) {
+            throw new TablesManagerError("Failed to initialize TablesManager: either a table reference, a business object, or a view name is required.");
         }
-      } else {
-        throw new TablesManagerError("Failed to initialize TablesManager: either a table reference or a business object is required.");
-      }
+
+        for (const [name, tableOrView] of this.loadedTables) {
+            if ('tableName' in tableOrView) {
+                await this.loadBiscuitsForTable(tableOrView as Table);
+            }
+        }
     } catch (error) {
-      this.log('Error in init:', 'error');
-      throw error;
+        this.log('Error in init:', 'error');
+        throw error;
     }
+  }
+
+  private async createViewObject(schema: string, viewName: string): Promise<View> {
+      const securityFilePath = path.join('schemas', schema.toLowerCase(), '.secure', 'keys', `${viewName.toUpperCase()}.json`);
+      const security = JSON.parse(await fs.promises.readFile(securityFilePath, 'utf8'));
+
+      const view: View = {
+          schema,
+          viewName: viewName.toUpperCase(),
+          resourceIds: [], // This will be populated with the resource IDs of the tables used in the view
+          security: {
+              hexEncodedPublicKey: security.hexEncodedPublicKey,
+              hexEncodedPrivateKey: security.hexEncodedPrivateKey
+          }
+      };
+
+      // Load biscuits for the view
+      const biscuitFilePath = path.join('schemas', schema.toLowerCase(), '.secure', 'biscuits', `${viewName.toUpperCase()}.json`);
+      if (await fs.promises.access(biscuitFilePath).then(() => true).catch(() => false)) {
+          const biscuits = JSON.parse(await fs.promises.readFile(biscuitFilePath, 'utf8'));
+          view.biscuits = {
+              ddl: biscuits.ddl,
+              dql: biscuits.dql
+          };
+      }
+
+      return view;
+  }
+
+  private async loadBiscuitsForTable(table: Table): Promise<void> {
+      const biscuitFilePath = path.join('schemas', table.schema.toLowerCase(), '.secure', 'biscuits', `${table.tableName}.json`);
+      if (await fs.promises.access(biscuitFilePath).then(() => true).catch(() => false)) {
+          const biscuits = JSON.parse(await fs.promises.readFile(biscuitFilePath, 'utf8'));
+          table.biscuits = biscuits;
+      }
+  }
+
+  getTables(): (Table | View)[] {
+    console.log('Loaded tables:', this.loadedTables);
+    return Array.from(this.loadedTables.values());
   }
 
   async listTableDefinitionsFromBusinessObject(businessObject: string, accessType: string = 'permissioned'): Promise<TablesResult> {
@@ -285,6 +328,38 @@ class TablesManager {
       };
     } catch (error) {
       this.log('Error in saveTableSecurity:', 'error');
+      return Utils.handleError(error);
+    }
+  }
+
+  async formatViewName(viewName: string): Promise<string> {
+    // Convert camelCase to SNAKE_CASE
+    const snakeCase = viewName.replace(/[A-Z]/g, letter => `_${letter}`).toUpperCase();
+    
+    // Add V_ prefix if not already present
+    return snakeCase.startsWith('V_') ? snakeCase : `V_${snakeCase}`;
+  }
+
+  async saveViewSecurity(viewName: string, force: boolean = false): Promise<Result> {
+    try {
+      // Format the view name
+      const formattedViewName = await this.formatViewName(viewName);
+      
+      const securityFilePath = Utils.createPath('schemas', this.schema.toLowerCase(), '.secure', 'keys', `${formattedViewName}.json`);
+      this.log(`Security file path: ${securityFilePath}`, 'info');
+  
+      const viewKeys = new ED25519Wallet();
+      const keyData: KeyPairEncodings = viewKeys.generateKeyPairEncodings();
+      this.log(`Public Key: ${keyData.hexEncodedPublicKey}`, 'info');
+  
+      await Utils.writeFile(securityFilePath, JSON.stringify(keyData, null, 2), force);
+  
+      return {
+        success: true,
+        message: `Public and private keys saved for view ${formattedViewName} in schema ${this.schema}`,
+      };
+    } catch (error) {
+      this.log('Error in saveViewSecurity:', 'error');
       return Utils.handleError(error);
     }
   }
@@ -595,12 +670,33 @@ class TablesManager {
     }
   }
 
-  async generateViewSQL(schema: string, viewName: string, viewType: 'standard' | 'materialized' | 'parameterized', action: 'create' | 'drop'): Promise<RenderSQLResult> {
+  async generateViewSQL(
+    schema: string, 
+    viewName: string, 
+    viewType: 'standard' | 'materialized' | 'parameterized', 
+    action: 'create' | 'drop',
+    refreshInterval?: number
+  ): Promise<RenderSQLResult> {
     try {
       let sql: string;
+      const capitalizedViewName = viewName.toUpperCase();
 
       if (action === 'create') {
-        const filePath = path.join('schemas', schema.toLowerCase(), 'sql', 'views', `${viewName}.sql`);
+        const securityFilePath = path.join('schemas', schema.toLowerCase(), '.secure', 'keys', `${capitalizedViewName}.json`);
+        if (!fs.existsSync(securityFilePath)) {
+          throw new Error(`Security file not found for view ${capitalizedViewName}`);
+        }
+        const securityData = JSON.parse(fs.readFileSync(securityFilePath, 'utf8'));
+
+        let publicKey = securityData.hexEncodedPublicKey;
+        if (!publicKey) {
+          throw new Error(`Public key not found in security file for view ${capitalizedViewName}`);
+        }
+
+        const filePath = path.join('schemas', schema.toLowerCase(), 'sql', 'views', `${capitalizedViewName}.sql`);
+        if (!fs.existsSync(filePath)) {
+          throw new Error(`SQL file not found for view ${capitalizedViewName}`);
+        }
         const viewDefinition = fs.readFileSync(filePath, 'utf8');
         
         const viewTypeMap = {
@@ -609,7 +705,13 @@ class TablesManager {
           parameterized: 'PARAMETERIZED VIEW'
         };
         
-        sql = `CREATE ${viewTypeMap[viewType]} ${schema}.${viewName} AS ${viewDefinition}`;
+        let withClause = `WITH "public_key=${publicKey}"`;
+        if (viewType === 'materialized' && refreshInterval) {
+          withClause += `,refresh_interval=${refreshInterval}`;
+        }
+        
+        sql = `CREATE ${viewTypeMap[viewType]} ${schema}.${capitalizedViewName} ${withClause} AS ${viewDefinition}`;
+
       } else {
         const viewTypeMap = {
           standard: 'VIEW',
@@ -617,13 +719,13 @@ class TablesManager {
           parameterized: 'PARAMETERIZED VIEW'
         };
         
-        sql = `DROP ${viewTypeMap[viewType]} ${schema}.${viewName}`;
+        sql = `DROP ${viewTypeMap[viewType]} ${schema}.${capitalizedViewName}`;
       }
 
       return { success: true, message: `${action.charAt(0).toUpperCase() + action.slice(1)} view SQL generated successfully`, sql };
     } catch (error) {
       const message = error instanceof Error ? error.message : 'An unknown error occurred';
-      this.log('Error in generateViewSQL:', 'error');
+      console.error('Error in generateViewSQL:', error);
       return { success: false, message, sql: null };
     }
   }

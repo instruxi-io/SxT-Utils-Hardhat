@@ -57,6 +57,12 @@ for (const tableAction in tableActions) {
 
 const stagingActions: StagingActions = {
   saveTableSecurity: async (tableManager: TablesManager) => await tableManager.saveTableSecurity(tableManager.force),
+  saveViewSecurity: async (tableManager: TablesManager, taskArgs?: TaskArgs) => {
+    if (!taskArgs || !taskArgs.viewname) {
+      throw new Error("View name is required for saveViewSecurity action");
+    }
+    return await tableManager.saveViewSecurity(taskArgs.viewname, taskArgs.force);
+  },
   saveTableDefinitions: async (tableManager: TablesManager) => await tableManager.saveTableDefinitions(tableManager.force),
   saveTableDQL: async (tableManager: TablesManager) => await tableManager.saveSQLTemplates('dql', tableManager.force),
   saveTableDML: async (tableManager: TablesManager) => await tableManager.saveSQLTemplates('dml', tableManager.force),
@@ -65,19 +71,26 @@ const stagingActions: StagingActions = {
 
 for (const stagingAction in stagingActions) {
   task(`sxt-utils:${stagingAction}`, `Generating table-level ${stagingAction} artifacts for the proposed tables`)
-  .addParam("schema", "The schema to process")
-  .addOptionalParam("businessobject", "The business object to process.")
-  .addOptionalParam("table", "The table to process.")
-  .addOptionalParam("accesstype", "Can be either 'permissioned' or 'public_read'. Defaults to permissioned", 'permissioned', types.string)
-  .addOptionalParam("force", "Overwrite the existing table definitions if persist is true", false, types.boolean)
-  .setAction(async (taskArgs: TaskArgs, hre: HardhatRuntimeEnvironment) => {
-    if (!taskArgs.table && !taskArgs.businessobject) {
-      throw new Error("Table(s) must be provided using the --businessobject or --table argument");
-    }
-    const tableManager = new TablesManager(taskArgs);
-    await tableManager.init(taskArgs);
-    await stagingActions[stagingAction](tableManager);
-  });
+    .addParam("schema", "The schema to process")
+    .addOptionalParam("businessobject", "The business object to process.")
+    .addOptionalParam("table", "The table to process.")
+    .addOptionalParam("viewname", "The view to process")
+    .addOptionalParam("accesstype", "Can be either 'permissioned' or 'public_read'. Defaults to permissioned", 'permissioned', types.string)
+    .addOptionalParam("force", "Overwrite the existing table definitions if persist is true", false, types.boolean)
+    .setAction(async (taskArgs: TaskArgs, hre: HardhatRuntimeEnvironment) => {
+      if (!taskArgs.viewname && !taskArgs.table && !taskArgs.businessobject) {
+        throw new Error("Either viewname, table, or businessobject must be provided");
+      }
+
+      const tableManager = new TablesManager(taskArgs);
+      await tableManager.init(taskArgs);
+
+      if (stagingAction === 'saveViewSecurity' && !taskArgs.viewname) {
+        throw new Error("viewname is required for saveViewSecurity action");
+      }
+
+      await stagingActions[stagingAction](tableManager, taskArgs);
+    });
 }
  
 const schemaActions: SchemaActions = {
@@ -121,7 +134,7 @@ for (const sessionAction in sessionActions) {
   });
 }
 
-function validateViewType(viewType: string | undefined): ViewTypes {
+function validateViewType(viewType: string): ViewTypes {
   if (viewType === 'standard' || viewType === 'materialized' || viewType === 'parameterized') {
     return viewType;
   }
@@ -129,30 +142,26 @@ function validateViewType(viewType: string | undefined): ViewTypes {
 }
 
 const viewActions: ViewActions = {
-  createView: async (hre: HardhatRuntimeEnvironment, clientManager: ClientManager, taskArgs: ViewTaskArgs): Promise<SxTResult> => 
-    await clientManager.manageView(hre, 'create', taskArgs.viewName, validateViewType(taskArgs.viewType)),
-  dropView: async (hre: HardhatRuntimeEnvironment, clientManager: ClientManager, taskArgs: ViewTaskArgs): Promise<SxTResult> => 
-    await clientManager.manageView(hre, 'drop', taskArgs.viewName, validateViewType(taskArgs.viewType)),
-  refreshMaterializedView: async (hre: HardhatRuntimeEnvironment, clientManager: ClientManager, taskArgs: ViewTaskArgs): Promise<SxTResult> => 
-    await clientManager.refreshMaterializedView(hre, taskArgs.viewName),
-  getLastRefreshTime: async (hre: HardhatRuntimeEnvironment, clientManager: ClientManager, taskArgs: ViewTaskArgs): Promise<SxTResult> => 
-    await clientManager.getLastRefreshTime(hre, taskArgs.viewName),
+  createView: async (hre: HardhatRuntimeEnvironment, clientManager: ClientManager, taskArgs: ViewTaskArgs): Promise<SxTResult> => await clientManager.manageView(hre, 'create', taskArgs.viewname, validateViewType(taskArgs.viewtype)),
+  dropView: async (hre: HardhatRuntimeEnvironment, clientManager: ClientManager, taskArgs: ViewTaskArgs): Promise<SxTResult> => await clientManager.manageView(hre, 'drop', taskArgs.viewname, validateViewType(taskArgs.viewtype)),
+  refreshMaterializedView: async (hre: HardhatRuntimeEnvironment, clientManager: ClientManager, taskArgs: ViewTaskArgs): Promise<SxTResult> => await clientManager.refreshMaterializedView(hre, taskArgs.viewname),
+  getLastRefreshTime: async (hre: HardhatRuntimeEnvironment, clientManager: ClientManager, taskArgs: ViewTaskArgs): Promise<SxTResult> => await clientManager.getLastRefreshTime(hre, taskArgs.viewname),
+  queryView: async (hre: HardhatRuntimeEnvironment, clientManager: ClientManager, taskArgs: ViewTaskArgs): Promise<SxTResult> => await clientManager.manageViewDQL(hre, taskArgs.viewname, validateViewType(taskArgs.viewtype)),
 };
 
-for (const clientAction in viewActions) {
-  task(`sxt-utils:${clientAction}`, `Perform ${clientAction} operation`)
+for (const viewAction in viewActions) {
+  task(`sxt-utils:${viewAction}`, `Perform ${viewAction} operation`)
     .addParam("schema", "The schema to process")
     .addOptionalParam("businessobject", "The business object to process.")
     .addOptionalParam("table", "The table to process.")
-    .addParam("viewName", "The name of the view to process")
-    .addOptionalParam("viewType", "The type of view (standard, materialized, parameterized)", 'standard', types.string)
+    .addParam("viewname", "The name of the view to process")
+    .addOptionalParam("viewtype", "The type of view (standard, materialized, parameterized)", 'standard', types.string)
     .setAction(async (taskArgs: ViewTaskArgs, hre: HardhatRuntimeEnvironment) => {
       const tableManager = new TablesManager(taskArgs);
       await tableManager.init(taskArgs);
       const clientManager = new ClientManager(tableManager);
       try {
-        const result = await viewActions[clientAction](hre, clientManager, taskArgs);
-        console.log(result.message);
+        const result = await viewActions[viewAction](hre, clientManager, taskArgs);
       } catch (error) {
         console.error(`Error: ${(error as Error).message}`);
       }

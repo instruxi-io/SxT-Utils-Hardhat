@@ -4,6 +4,29 @@ import TablesManager from "./Tables";
 import SessionManager from "./Session";
 import SchemaManager from "./Schema";
 
+export interface View {
+    schema: string;
+    viewName: string;
+    resourceIds: string[];
+    biscuits?: {
+        ddl?: string;
+        dql?: string;
+    };
+    security?: {
+        hexEncodedPublicKey: string;
+        hexEncodedPrivateKey: string;
+    };
+}
+  
+export interface KeyPairEncodings {
+    ED25519PublicKeyUint: Uint8Array;
+    ED25519PrivateKeyUint: Uint8Array;
+    b64PublicKey: string;
+    b64PrivateKey: string;
+    hexEncodedPublicKey: string;
+    hexEncodedPrivateKey: string;
+}
+
 export interface RenderSQLResult {
     success: boolean;
     sql: string | null; 
@@ -29,13 +52,14 @@ export interface TaskArgs {
     persist?: boolean;
     query?: string;
     outfile?: string;
+    viewname?: string;
 }
 
 export interface ViewTaskArgs {
     schema: string;
     tables: string;
-    viewName: string;
-    viewType: string;
+    viewname: string;
+    viewtype: string;
 }
 
 export interface QueryTaskArgs {
@@ -197,7 +221,7 @@ export interface QueryActions {
 }
   
 interface StagingAction {
-    (tableManager: TablesManager): Promise<Result>;
+    (tableManager: TablesManager, taskArgs?: TaskArgs): Promise<Result>;
 }
   
 export interface StagingActions {

@@ -88,7 +88,8 @@ class SchemaManager {
           ['sql', 'dml', 'delete'],
           ['sql', 'dql', 'preview'],
           ['sql', 'ud-custom'],
-          ['sql', 'ud-routes']
+          ['sql', 'ud-routes'],
+          ['sql', 'views']
         ];
         await this.createDirectories(schemaDir, directories);
         return {
