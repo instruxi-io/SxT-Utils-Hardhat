@@ -115,21 +115,20 @@
 7. Model your tables as [business objects](https://dbdiagram.io/d/660439a2ae072629ce1c2156) and place them in the business-objects directory --> `business-objects/<businessObject>.ejs`
 
 #
-	TABLE TEST.TO_DO {
-    		ID VARCHAR(36)
-    		MESSAGE VARCHAR(36)
-    		DUE_DATE VARCHAR(36)
-    
-    		Indexes {
-        		(ID) [pk, name:"pk"]
-    		}
-  	}	
+Table <%= schema %>.ACCOUNTS {
+  id VARCHAR(36) 
+  account_address VARCHAR(256)    
+  Indexes {
+    (account_address) [pk, name:"pk"]
+  }
+}
 #
 
 7. Generate all of the table-level security. Keep the output of this procedure [rivate. The contents should never be committed to public Github repositories and special caution should be taken when handling production security artifacts.
 
 #
 
+	npx hardhat sxt-utils:saveTableDefinitions --schema <schema> --businessobject <businessObject>
 	npx hardhat sxt-utils:saveTableSecurity --schema <schema> --businessobject <businessObject>
  
 #
