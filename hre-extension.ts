@@ -1,13 +1,16 @@
 import { HardhatRuntimeEnvironment } from 'hardhat/types';
-import { SpaceAndTimeSDK, SessionData} from '@instruxi-io/sxt-typescript-sdk';
-import { Wallet } from "ethers";
+import { SpaceAndTimeSDK, SessionData, MinimalSigner} from '@instruxi-io/sxt-typescript-sdk';
+import { privateKeyToAccount } from 'viem/accounts';
+import { sepolia } from 'viem/chains';
 import { writeFileSync, readFileSync, existsSync, mkdirSync } from 'fs';
+import { createWalletClient, http, createPublicClient, Chain, PublicClient, WalletClient } from 'viem';
 
-export type SxTSDKInstance = ReturnType<typeof SpaceAndTimeSDK.init>;
-
+export type SxTSDKInstance = SpaceAndTimeSDK;
 
 declare module 'hardhat/types/config' {
     interface HardhatUserConfig {
+        meshUri: string;
+        meshApiKey: string;
         sxtUri: string;
         sxtJoinCode: string;
         sxtUserId: string;
@@ -20,39 +23,71 @@ declare module 'hardhat/types/config' {
 
 declare module 'hardhat/types/runtime' {
     interface HardhatRuntimeEnvironment {
-        sxtSDK: SxTSDKInstance;
+        sxtSDK: SxTSDKInstance;  // No Promise wrapper
     }
 }
 
 class SDKInitializationError extends Error {
     constructor(message: string) {
-      super(message);
-      this.name = 'SDKInitializationError';
+        super(message);
+        this.name = 'SDKInitializationError';
     }
 }
 
-export function initSxTSDK(
-    signer: InstanceType<typeof Wallet>,
+async function createUnifiedClient(privateKey: string, chain: Chain = sepolia): Promise<MinimalSigner> {
+    const viemAccount = privateKeyToAccount(`0x${privateKey}`);
+    
+    const publicClient = createPublicClient({
+        chain,
+        transport: http()
+    }) as PublicClient & { readContract: any };
+    
+    const walletClient = createWalletClient({
+        account: viemAccount,
+        chain,
+        transport: http()
+    }) as WalletClient & { chain: Chain };
+    
+    return {
+        getAddress: async () => viemAccount.address,
+        signMessage: async (message: string) => {
+            return await walletClient.signMessage({
+                message,
+                account: viemAccount
+            });
+        }
+    };
+}
+
+export async function initSxTSDK(
+    unifiedClient: MinimalSigner,
     sxtUri: string,
     sxtUserId: string,
     sxtJoinCode: string
-): SxTSDKInstance {
+): Promise<SxTSDKInstance> { 
     try {
         let session: SessionData;
         const sessionFilePath = 'tmp/session.json';
         if (existsSync(sessionFilePath)) {
             session = JSON.parse(readFileSync(sessionFilePath, 'utf8'));
         } else {
-            session = {accessToken: '', refreshToken: '', accessTokenExpires: 0, refreshTokenExpires: 0};
+            session = {
+                accessToken: '',
+                refreshToken: '',
+                accessTokenExpires: 0,
+                refreshTokenExpires: 0
+            };
             mkdirSync('tmp', { recursive: true });
             writeFileSync(sessionFilePath, JSON.stringify(session), 'utf8');
         }
+        
         const sdkParams = {
-            signer: signer,
+            signer: unifiedClient,
             baseUrl: sxtUri,
             userId: sxtUserId,
             joinCode: sxtJoinCode,
             scheme: '1',
+            authType: 'user',
             session: session
         };
         return SpaceAndTimeSDK.init(sdkParams);
@@ -61,20 +96,19 @@ export function initSxTSDK(
         throw new SDKInitializationError("SxT SDK initialization failed");
     }
 }
-export function extendHRE(params: {
+
+export async function extendHRE(params: {
     hre: HardhatRuntimeEnvironment, 
     sxtUri: string,
     sxtJoinCode: string,
     sxtUserId: string, 
     account: string,
     version: string
-}
-): void {
+}): Promise<void> {
     const { hre, sxtUri, sxtJoinCode, sxtUserId, account, version } = params;
     try {
-        const provider = hre.ethers.provider;
-        const signer = new hre.ethers.Wallet(account, provider);
-        hre.sxtSDK = initSxTSDK(signer, sxtUri, sxtUserId, sxtJoinCode);
+        const unifiedClient = await createUnifiedClient(account);
+        hre.sxtSDK = await initSxTSDK(unifiedClient, sxtUri, sxtUserId, sxtJoinCode);
     } catch (error) {
         console.error('An error occurred during Extend HRE:', error);
         throw new Error("Extend HRE failed");

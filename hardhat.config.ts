@@ -14,17 +14,23 @@ dotEnvConfig();
 
 const REPORT_GAS = process.env.REPORT_GAS?.toLowerCase() === "true" ? true : false;
 
-/*
 const SOLC_SETTINGS = {
-	optimizer: {
-	  enabled: true,
-	  runs: 1_000,
-	},
-  };
-*/
+    optimizer: {
+      enabled: true,
+      runs: 100000,
+    },
+};
 
 const config: HardhatUserConfig = {
-	solidity: '0.8.20',
+	solidity: {
+        version: '0.8.20',
+        settings: SOLC_SETTINGS,
+    },
+	sourcify: {
+		enabled: false,
+		apiUrl: "https://sourcify.dev/server",
+		browserUrl: "https://repo.sourcify.dev",
+	},
 	defaultNetwork: "localTestnet",
 	meshUri: process.env.MESH_URI || '',
 	meshApiKey: process.env.MESH_API_KEY || '',
@@ -33,20 +39,13 @@ const config: HardhatUserConfig = {
 	sxtApiKey: process.env.SXT_API_KEY || '',
 	sxtUserId: process.env.SXT_USER_ID || '',
 	account: process.env.PRIVATE_KEY || '',
+	version: process.env.MESH_VERSION || '',
 	networks: {
 		...networks,
 	  },
 	etherscan: {
 		apiKey: {
-		  mainnet: networks.ethereum.verifyApiKey,
-		  avalanche: networks.avalanche.verifyApiKey,
-		  polygon: networks.polygon.verifyApiKey,
-		  sepolia: networks.ethereumSepolia.verifyApiKey,
-		  polygonMumbai: networks.polygonMumbai.verifyApiKey,
-		  avalancheFujiTestnet: networks.avalancheFuji.verifyApiKey,
-		  base: networks.base.verifyApiKey,
-		  arbitrum: networks.arbitrum.verifyApiKey,
-		},
+		},	
 	  },
 	gasReporter: {
 		enabled: REPORT_GAS,
@@ -54,28 +53,31 @@ const config: HardhatUserConfig = {
 		outputFile: "gas-report.txt",
 		noColors: true,
 	  },
-	  contractSizer: {
-		runOnCompile: false,
-		only: [],
-	  },
-	  paths: {
+	contractSizer: {
+	runOnCompile: false,
+	only: [],
+	},
+	paths: {
 		sources: "./contracts",
 		tests: "./test",
 		cache: "./build/cache",
 		artifacts: "./build/artifacts",
-	  },
-	  mocha: {
+	},
+	mocha: {
 		timeout: 200000, // 200 seconds max for running tests
-	  },
+	},
 };
 
 extendEnvironment((hre: HardhatRuntimeEnvironment) => {  
     const initParams = {
         hre, 
+        meshUri: config.meshUri, 
+        meshApiKey: config.meshApiKey, 
         sxtUri: config.sxtUri,
         sxtJoinCode: config.sxtJoinCode,
         sxtUserId: config.sxtUserId, 
-        account: config.account
+        account: config.account,
+		version: config.version
     };
     extendHRE(initParams);
 });

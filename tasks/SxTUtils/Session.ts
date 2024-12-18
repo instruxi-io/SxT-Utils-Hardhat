@@ -7,7 +7,7 @@ class SessionManager {
     constructor (){}
 
     async login(hre: HardhatRuntimeEnvironment, taskArgs: TaskArgs): Promise<Result> {
-      const [session, error] = await hre.sxtSDK.authenticate('wallet', ''); 
+      const [session, error] = await hre.sxtSDK.authenticate(); 
       if (error) {
         return { success: false, message: 'Failed to authenticate: ' + error.message };
       }
