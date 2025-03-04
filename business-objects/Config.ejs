@@ -1,0 +1,30 @@
+Table <%= schema %>.WEB3_CONFIG {
+    id VARCHAR(36) 
+    priority INT
+    blockchain_id VARCHAR(36)
+    acceptable_block_depth INT
+    batch_size_of_blocks INT
+    note VARCHAR(1000)
+    http VARCHAR(256)
+    wss VARCHAR(256)
+  
+    Indexes {
+      (blockchain_id, priority) [pk, name:"pk"]
+    }
+  }
+
+Table <%= schema %>.CHAINLINK_FUNCTIONS_CONFIG {
+    id VARCHAR(36)
+    blockchain_id VARCHAR(36)
+    cl_subscription_id INT
+    oracle_proxy_address VARCHAR(256)
+    link_native_price_feed_address VARCHAR(256)
+    usdc_native_price_feed_address VARCHAR(256)
+    link_token_address VARCHAR(256)
+    don_hosted_secret_key VARCHAR(256)
+    don_hosted_secret_expires_at TIMESTAMP
+
+    Indexes {
+      (blockchain_id, cl_subscription_id) [pk, name:"pk"]
+    }
+  }

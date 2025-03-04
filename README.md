@@ -130,6 +130,8 @@ Table <%= schema %>.ACCOUNTS {
 
 	npx hardhat sxt-utils:saveTableDefinitions --schema <schema> --businessobject <businessObject>
 	npx hardhat sxt-utils:saveTableSecurity --schema <schema> --businessobject <businessObject>
+	npx hardhat sxt-utils:saveTableDefinitions --schema <schema> --businessobject <businessObject> --force true
+
  
 #
 
@@ -144,7 +146,7 @@ Table <%= schema %>.ACCOUNTS {
 9. Generate all of the table-level artifacts for the given tables.
 
 #
-	npx hardhat sxt-utils:saveTableDefinitions --schema <schema> --businessobject <businessObject>
+	npx hardhat sxt-utils:saveTableDefinitions --schema <schema> --businessobject <businessObject> --force true
 	npx hardhat sxt-utils:saveTableDDL --schema <schema> --businessobject <businessObject>
 	npx hardhat sxt-utils:saveTableDML --schema <schema> --businessobject <businessObject>
 	npx hardhat sxt-utils:saveTableDQL --schema <schema> --businessobject <businessObject>

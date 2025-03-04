@@ -1,0 +1,60 @@
+Table <%= schema %>.ORDERS {
+    id VARCHAR(36)
+    account_address VARCHAR(256)
+    order_date TIMESTAMP
+    total_amount FLOAT
+    status VARCHAR(20)
+
+    Indexes {
+        (id) [pk, name:"pk_orders"]
+        (account_address) [name:"idx_orders_customer"]
+    }
+}
+
+Table <%= schema %>.PRODUCTS {
+    id VARCHAR(36)
+    name VARCHAR(256)
+    note TEXT
+    price FLOAT
+    stock_quantity INT
+
+    Indexes {
+        (id) [pk, name:"pk_products"]
+    }
+}
+
+Table <%= schema %>.DISCOUNTS {
+    id VARCHAR(36)
+    code VARCHAR(20)
+    amount FLOAT
+    discount_type VARCHAR(20)
+    start_date TIMESTAMP
+    end_date TIMESTAMP
+
+    Indexes {
+        (id) [pk, name:"pk_discounts"]
+    }
+}
+
+Table <%= schema %>.TRANSACTIONS {
+    id VARCHAR(36) 
+    order_id VARCHAR(36)
+    amount FLOAT
+    payment_method VARCHAR(50)
+    status VARCHAR(20)
+    created_at TIMESTAMP
+
+    Indexes {
+        (id) [pk, name:"pk_transactions"]
+    }
+}
+
+Table <%= schema %>.PRODUCT_DISCOUNTS {
+    id VARCHAR(36)
+    product_id VARCHAR(36)
+    discount_id VARCHAR(36)
+
+    Indexes {
+        (id) [pk, name:"pk_product_discounts"]
+    }
+}

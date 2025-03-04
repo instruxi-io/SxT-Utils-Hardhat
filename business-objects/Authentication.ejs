@@ -1,0 +1,127 @@
+Table <%= schema %>.ACCOUNTS {
+  id VARCHAR(36) 
+  account_address VARCHAR(256)
+  tenant_id VARCHAR(256)
+  role_id VARCHAR(36)
+  active BOOLEAN
+  activation_code VARCHAR(256)
+  instruxi_terms_accepted BOOLEAN
+  first_name VARCHAR(256)
+  last_name VARCHAR(256)
+  phone_number VARCHAR(256)
+  date_of_birth DATE
+  email VARCHAR(256)
+  email_verified BOOLEAN
+  username VARCHAR(256)
+  stripe_user_id VARCHAR(256)
+  okta_user_id VARCHAR(256)
+  created_at TIMESTAMP
+  updated_at TIMESTAMP
+  authenticated_at TIMESTAMP
+    
+  Indexes {
+    (account_address) [pk, name:"pk"]
+  }
+}
+
+Table <%= schema %>.TENANT_SECRETS {
+  id VARCHAR(36)
+  secret_hash VARCHAR(256)
+  secret_name VARCHAR(256)
+  tenant_id VARCHAR(256)
+  active BOOLEAN
+
+  Indexes {
+    (tenant_id, secret_hash) [pk, name:"pk"]
+  }
+}
+
+Table <%= schema %>.APIKEYS {
+  id VARCHAR(36)
+  api_key VARCHAR(256)
+  account_address VARCHAR(256)
+  active BOOLEAN
+  updated_at TIMESTAMP
+  created_at TIMESTAMP
+
+  Indexes {
+    (api_key, account_address) [pk, name:"pk"]
+  }
+}
+
+Table <%= schema %>.GROUPS {
+  id VARCHAR(36)
+  name VARCHAR(256)
+  note VARCHAR(256)
+  tenant_id VARCHAR(256)
+  
+  Indexes {
+    (id) [pk, name:"pk"]
+  }
+}
+
+Table <%= schema %>.ACCOUNT_GROUPS {
+  id VARCHAR(36)
+  account_address VARCHAR(256)
+  group_id VARCHAR(36)
+  
+  Indexes {
+    (account_address, group_id) [pk, name:"pk"]
+  }
+}
+
+Table <%= schema %>.TENANTS {
+  id VARCHAR(36) 
+  name VARCHAR(256)
+  active BOOLEAN
+
+  Indexes {
+    (id) [pk, name:"pk"]
+  }
+}
+
+Table <%= schema %>.ROLES {
+  id VARCHAR(36)
+  name VARCHAR(256)
+  permissions VARCHAR(256)
+
+  Indexes {
+    (id) [pk, name:"pk"]
+  }
+}
+
+Table <%= schema %>.ID_SESSIONS {
+  id VARCHAR(36)
+  client_key VARCHAR(128)
+  blockchain_id VARCHAR(36)
+  account_address VARCHAR(256) [not null]
+  receipt_transaction_hash VARCHAR(256)
+  verification_session_id VARCHAR(256)
+  event_id VARCHAR(256) [not null]
+  event_type VARCHAR(256) [not null]
+  object_name VARCHAR(256) [not null] 
+  type_id VARCHAR(256) [not null]
+  created_at TIMESTAMP [not null, default: `CURRENT_TIMESTAMP`]
+  updated_at TIMESTAMP [not null, default: `CURRENT_TIMESTAMP`]
+  status VARCHAR(32) [not null, default: 'unpaid']
+ 
+  Indexes {
+    (id) [pk]
+    (verification_session_id, event_type) [unique, name: "unique_verification_session"]
+    (event_id, event_type) [unique, name: "unique_event"]
+    (account_address, status) [name: "idx_account_status"]
+    (verification_session_id, event_type, status) [name: "idx_verification_lookup"]
+  }
+ }
+
+Table <%= schema %>.ID_SESSION_TYPES {
+  id VARCHAR(36) 
+  name VARCHAR(256)
+  note VARCHAR(256)
+  source VARCHAR(256)
+  region VARCHAR(256)
+
+  Indexes {
+    (id) [pk, name:"pk"]
+  }
+}

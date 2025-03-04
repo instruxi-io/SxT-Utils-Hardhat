@@ -6,7 +6,7 @@ import Utils from './utils/utils';
 import extract from 'extract-zip';
 import rimraf from 'rimraf';
 import mkdirp from 'mkdirp';
-import { ED25519Wallet } from '@instruxi-io/sxt-typescript-sdk';
+import { ED25519Signer } from '@instruxi-io/sxt-typescript-sdk';
 import ejs from 'ejs';
 import { Parser } from '@dbml/core';
 import NodeCache from 'node-cache';
@@ -80,8 +80,8 @@ class TablesManager {
         }
 
         for (const [name, tableOrView] of this.loadedTables) {
-            if ('tableName' in tableOrView) {
-                await this.loadBiscuitsForTable(tableOrView as Table);
+            if (this.isTable(tableOrView)) {
+                await this.loadBiscuitsForTable(tableOrView);
             }
         }
     } catch (error) {
@@ -279,9 +279,10 @@ class TablesManager {
     let table = this.cache.get<Table>(cacheKey);
     
     if (table === undefined) {
-      table = this.loadedTables.get(tableName);
-      if (table) {
-        this.cache.set(cacheKey, table);
+      const tableOrView = this.loadedTables.get(tableName);
+      if (tableOrView && this.isTable(tableOrView)) {
+        this.cache.set(cacheKey, tableOrView);
+        table = tableOrView;
       } else {
         // If the table is not loaded, try to load it
         const tableDefinition = await this.loadTableDefinition(tableName);
@@ -313,13 +314,25 @@ class TablesManager {
         };
       }
   
-      for (let [, table] of this.loadedTables) {
+      for (let [, tableOrView] of this.loadedTables) {
+        // Skip views, only process tables
+        if (!this.isTable(tableOrView)) {
+          continue;
+        }
+
+        const table = tableOrView; // Now TypeScript knows this is a Table
         const securityFilePath = Utils.createPath('schemas', this.schema.toLowerCase(), '.secure', 'keys', `${table.tableName}.json`);
         this.log(`Security file path: ${securityFilePath}`, 'info');
-        const tableKeys = new ED25519Wallet();
-        const keyData: KeyPairEncodings = tableKeys.generateKeyPairEncodings();
-        this.log(`Public Key: ${keyData.hexEncodedPublicKey}`, 'info');
-        Utils.writeFile(securityFilePath, JSON.stringify(keyData, null, 2), force);
+        try {
+          const tableKeys = new ED25519Signer();
+          const keyData: KeyPairEncodings = tableKeys.generateKeyPairEncodings();
+          this.log(`Public Key: ${keyData.hexEncodedPublicKey}`, 'info');
+          Utils.writeFile(securityFilePath, JSON.stringify(keyData, null, 2), force);
+        } catch (innerError) {
+          this.log(`Error generating keys for table ${table.tableName}: ${innerError instanceof Error ? innerError.message : 'Unknown error'}`, 'error');
+          this.log(`Error details: ${JSON.stringify(innerError)}`, 'error');
+          throw innerError;
+        }
       }
   
       return {
@@ -327,7 +340,8 @@ class TablesManager {
         message: `Public and private keys saved for all tables in schema ${this.schema}`
       };
     } catch (error) {
-      this.log('Error in saveTableSecurity:', 'error');
+      this.log(`Error in saveTableSecurity: ${error instanceof Error ? error.message : 'Unknown error'}`, 'error');
+      this.log(`Error details: ${JSON.stringify(error)}`, 'error');
       return Utils.handleError(error);
     }
   }
@@ -414,6 +428,11 @@ class TablesManager {
     }
   }
 
+  // Type guard to check if an object is a Table
+  private isTable(obj: Table | View): obj is Table {
+    return 'tableName' in obj && 'resourceId' in obj && 'accessType' in obj;
+  }
+
   async saveTableDefinitions(force: boolean = false): Promise<Result> {  
     try {
       if (this.loadedTables.size === 0) {
@@ -421,9 +440,11 @@ class TablesManager {
         return { success: false, message: 'No tables to process' };
       }
 
-      for (const [, table] of this.loadedTables) {
-        const outputFilePath = Utils.createPath('schemas', this.schema.toLowerCase(), 'tables', `${table.tableName}.json`);
-        Utils.writeFile(outputFilePath, JSON.stringify(table, null, 2), force);
+      for (const [, tableOrView] of this.loadedTables) {
+        if (this.isTable(tableOrView)) {
+          const outputFilePath = Utils.createPath('schemas', this.schema.toLowerCase(), 'tables', `${tableOrView.tableName}.json`);
+          Utils.writeFile(outputFilePath, JSON.stringify(tableOrView, null, 2), force);
+        }
       }
       return { success: true, message: `Processed ${this.schema}` };
     } catch (error) {
@@ -616,7 +637,13 @@ class TablesManager {
     try {
       let generatedCount = 0;
 
-      for (const [, table] of this.loadedTables) {
+      for (const [, tableOrView] of this.loadedTables) {
+        // Skip views, only process tables
+        if (!this.isTable(tableOrView)) {
+          continue;
+        }
+
+        const table = tableOrView; // Now TypeScript knows this is a Table
         let contents;
         let outputDir;
         let files: { path: string; content: string }[] = [];

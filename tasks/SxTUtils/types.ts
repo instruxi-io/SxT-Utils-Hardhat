@@ -25,6 +25,8 @@ export interface KeyPairEncodings {
     b64PrivateKey: string;
     hexEncodedPublicKey: string;
     hexEncodedPrivateKey: string;
+    publicKey?: string;
+    privateKey?: string;
 }
 
 export interface RenderSQLResult {
@@ -103,6 +105,8 @@ export interface Security {
     b64PrivateKey: string;
     hexEncodedPublicKey: string;
     hexEncodedPrivateKey: string;
+    publicKey?: string;
+    privateKey?: string;
 }
 
 export interface Biscuits {

@@ -1,0 +1,60 @@
+Table <%= schema %>.SMART_CONTRACTS {
+  id VARCHAR(36)
+  code VARCHAR(256)
+  note VARCHAR(1000)
+  blockchain_id VARCHAR(36) 
+  contract_address VARCHAR(256) 
+  transaction_hash VARCHAR(256)
+  smart_contract_type_id VARCHAR(36)
+  deployed_at TIMESTAMP
+  deployed_by VARCHAR(256)
+  deployed_from VARCHAR(256)
+
+  Indexes {
+    (blockchain_id, contract_address) [pk, name:"pk"]
+    (deployed_by, smart_contract_type_id) [name:"idx_deployed_by"]
+  }
+}
+
+Table <%= schema %>.BLOCKCHAINS {
+  id VARCHAR(36) 
+  chain_id BIGINT   
+  blockchain VARCHAR(256)
+
+  Indexes {
+    (chain_id) [pk, name:"pk"]
+  }
+}
+
+Table <%= schema %>.SMART_CONTRACT_TYPES {
+  id VARCHAR(36) 
+  parent_id VARCHAR(256)
+  name VARCHAR(256) 
+  class VARCHAR(256) 
+  version VARCHAR(256) 
+
+  Indexes {
+    (parent_id, name, class, version) [pk, name:"pk"]
+  }
+}
+
+Table <%= schema %>.SMART_CONTRACT_EVENTS {
+  id VARCHAR 
+  blockchain_id VARCHAR(255)
+  event_name VARCHAR(255)
+  contract_type VARCHAR(255)
+  block_number BIGINT
+  transaction_hash VARCHAR(255)
+  contract_address VARCHAR(255)
+  event_data VARCHAR
+  from_address VARCHAR(255)
+  to_address VARCHAR(255)
+  token_id VARCHAR(255)
+  value DECIMAL(18,6)
+  created_at TIMESTAMP
+  updated_at TIMESTAMP
+
+  Indexes {
+      (blockchain_id, contract_address, transaction_hash) [pk, name:"pk"]
+  }
+}

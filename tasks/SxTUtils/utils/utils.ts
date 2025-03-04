@@ -18,18 +18,24 @@ function handleTableErrors(error: any): TablesResult {
 }
 
 // Utility function to write files
-function writeFile(path: string, content: string, force: boolean): void {
-  if (fs.existsSync(path)) {
+function writeFile(filePath: string, content: string, force: boolean): void {
+  if (fs.existsSync(filePath)) {
     if (!force) {
-      console.log(`\nFile ${path} already exists. Use force option to overwrite.\n`);
+      console.log(`\nFile ${filePath} already exists. Use force option to overwrite.\n`);
       return;
     }
-    console.log(`Overwriting existing file ${path}`);
+    console.log(`Overwriting existing file ${filePath}`);
   } else {
-    console.log(`\nCreating new file ${path}`);
+    console.log(`\nCreating new file ${filePath}`);
+    // Ensure directory exists
+    const dirname = path.dirname(filePath);
+    if (!fs.existsSync(dirname)) {
+      fs.mkdirSync(dirname, { recursive: true });
+      console.log(`Created directory structure: ${dirname}`);
+    }
   }
   
-  fs.writeFileSync(path, content);
+  fs.writeFileSync(filePath, content);
 }
 
 // Utility function to create file paths

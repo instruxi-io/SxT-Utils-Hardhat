@@ -1,0 +1,25 @@
+Table <%= schema %>.ATTESTATIONS {
+    id VARCHAR(36) 
+    blockchain_id VARCHAR(36)
+    account_address VARCHAR(256)
+    asset_contract_address VARCHAR(256)
+    token_id INT
+    fractional_unit VARCHAR(256)
+    fractional_token_contract_address VARCHAR(256)
+    fractional_amount FLOAT
+    c_token_index FLOAT
+    rebase_index FLOAT
+    asset_bank_contract_address VARCHAR(256)
+    asset_bank_version VARCHAR(16)
+    audited BOOLEAN
+    auditor_account_address VARCHAR(256)
+    auditor_signature VARCHAR(256)
+    created_at TIMESTAMP
+    updated_at TIMESTAMP
+    created_by VARCHAR(256)
+    updated_by VARCHAR(256)
+    
+    Indexes {
+        (blockchain_id, asset_contract_address, token_id, fractional_token_contract_address) [pk]
+    }
+}

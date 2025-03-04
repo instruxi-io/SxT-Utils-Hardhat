@@ -1,0 +1,38 @@
+Table <%= schema %>.FILES {
+    id VARCHAR(36)
+    file_name VARCHAR(256)
+    bucket_name VARCHAR(256)
+    directory_name VARCHAR(256)
+    owner_address VARCHAR(256)
+    file_size_bytes BIGINT
+    file_type VARCHAR(256)
+    policy_id INT
+    version VARCHAR(256)
+    status VARCHAR(256)
+    created_at TIMESTAMP
+    updated_at TIMESTAMP
+    
+    Indexes {
+      (bucket_name, directory_name, file_name) [pk, name:"pk"]
+    }
+  }
+
+  Table <%= schema %>.SHARING_INTENTS {
+    id VARCHAR(36)
+    resource_code VARCHAR(256) 
+    resource_type VARCHAR(256)
+    shared_by VARCHAR(256) 
+    shared_with VARCHAR(256)
+    shared_with_type VARCHAR(256)
+    security_artifact TEXT
+    permission_level VARCHAR(256) 
+    expiration_date TIMESTAMP 
+    active BOOLEAN 
+    created_at TIMESTAMP 
+    updated_at TIMESTAMP 
+    
+    Indexes {
+      (resource_code, shared_by, shared_with) [pk, name:"pk"]
+      (resource_code, shared_with) [name: "idx_file_shared_status"]
+    }
+}

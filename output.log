@@ -1,0 +1,5 @@
+[2025-03-04T18:50:36.185Z] INFO: Security file path: schemas/ap_test/.secure/keys/ATTESTATIONS.json
+[2025-03-04T18:50:36.189Z] INFO: Public Key: 302a300506032b65700321009e13cf37dd1a9dce37c0481197263e97089045939f55b2f4f19cde17c5f9ace9
+
+File schemas/ap_test/.secure/keys/ATTESTATIONS.json already exists. Use force option to overwrite.
+

@@ -1,0 +1,13 @@
+Table <%= schema %>.DOMAIN_REGISTRY {
+    id VARCHAR(36)
+    reference_locator VARCHAR(256)
+    gateway_uri VARCHAR(256)
+    note VARCHAR(256)
+    ssl_required BOOLEAN
+    active BOOLEAN
+    created_at TIMESTAMP
+  
+    Indexes {
+      (id) [pk, name:"pk"]
+    }
+  }

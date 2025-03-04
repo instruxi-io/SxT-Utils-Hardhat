@@ -1,0 +1,68 @@
+Table <%= schema %>.KV_KEYSPACE {
+  id VARCHAR(36) 
+  blockchain_id VARCHAR(36) 
+  code VARCHAR(256) 
+  alt VARCHAR(256)
+  note VARCHAR
+  image_url VARCHAR(1000)
+  banner_url VARCHAR(1000)
+  thumbnail_url VARCHAR(1000)
+  kv_type_id VARCHAR(36)
+  account_address VARCHAR(256)
+  active BOOLEAN
+  public BOOLEAN
+  updated_at TIMESTAMP
+  updated_by VARCHAR(256)
+  created_at TIMESTAMP
+  created_by VARCHAR(256)
+
+  Indexes {
+    (blockchain_id, code, kv_type_id) [pk, name:"pk"]
+  }
+}
+
+Table <%= schema %>.KV_TYPE {
+  id VARCHAR(36) 
+  kv_type VARCHAR(256)
+
+  Indexes {
+    (kv_type) [pk, name:"pk"]
+  }
+}
+
+Table <%= schema %>.KV_KEY_INDEX {
+  id VARCHAR(36) 
+  keyspace_id VARCHAR(36)
+  name VARCHAR(256)
+  note VARCHAR
+  image VARCHAR(1000)
+  external_url VARCHAR(1000)
+  key VARCHAR(256)
+  value VARCHAR
+  dtype_id VARCHAR(36)
+  
+  Indexes {
+    (keyspace_id, key) [pk, name:"pk"]
+  }
+}
+
+Table <%= schema %>.KV_KEY_ATTRIBUTES {
+  id VARCHAR(36) 
+  kv_key_index_id VARCHAR(36)
+  kv_attribute VARCHAR(256)
+  value VARCHAR
+  dtype_id VARCHAR(36)
+
+  Indexes {
+    (kv_key_index_id, kv_attribute) [pk, name:"pk"]
+  }
+}
+
+Table <%= schema %>.KV_DTYPES {
+  id VARCHAR(36) 
+  dtype VARCHAR(256) 
+
+  Indexes {
+    (dtype) [pk, name:"pk"]
+  }
+}
